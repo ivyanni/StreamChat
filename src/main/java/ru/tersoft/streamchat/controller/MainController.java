@@ -1,5 +1,6 @@
 package ru.tersoft.streamchat.controller;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
@@ -57,11 +58,11 @@ public class MainController {
         Stage popup = new Stage();
         popup.setScene(new Scene((webView)));
         popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setTitle("Authorizing...");
         popup.setIconified(false);
         popup.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
-        popup.setMaxWidth(370);
-        popup.setMaxHeight(455);
+        popup.setWidth(370);
+        popup.setHeight(445);
+        popup.setResizable(false);
         popup.initOwner(primaryStage);
 
         webView.getEngine().locationProperty().addListener((observableValue, ov, url) -> {
@@ -74,6 +75,11 @@ public class MainController {
             }
         });
         popup.showAndWait();
+    }
+
+    @FXML
+    private void handleEnterPressed(ActionEvent ae){
+        handleSend();
     }
 
     @FXML

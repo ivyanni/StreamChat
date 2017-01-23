@@ -1,13 +1,12 @@
 package ru.tersoft.streamchat;
 
-import javafx.scene.control.TextArea;
-import okhttp3.*;
-import org.apache.commons.io.IOUtils;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.prefs.Preferences;
 
 /**
  * Project streamchat.
@@ -21,7 +20,8 @@ public class TwitchApi {
                                         "&redirect_uri=http://localhost/twitch_oauth" +
                                         "&scope=chat_login+channel_read+user_read";
 
-    private static PrintWriter out;
+    private static PrintWriter socketWriter;
+    private static PrintWriter logWriter;
     private final String SERVER = "irc.chat.twitch.tv";
     private final int PORT = 6667;
     private final String USERINFO_URL = "https://api.twitch.tv/kraken/channel";
@@ -34,27 +34,34 @@ public class TwitchApi {
     private void connect() {
         try {
             Socket socket=new Socket(SERVER, PORT);
-            BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())),true);
-            out.println("PASS oauth:" + token);
-            out.println("NICK " + username);
-            out.println("JOIN #" + username);
-            out.println("CAP REQ :twitch.tv/commands");
-            out.println("CAP REQ :twitch.tv/membership");
-            PrintWriter  pw = new PrintWriter(new OutputStreamWriter(new OutputStream() {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            socketWriter = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())),true);
+            logWriter = new PrintWriter(new OutputStreamWriter(new OutputStream() {
                 @Override
                 public void write(int b) throws IOException {
                     Logger.printSymbol((char)b);
                 }
             }), true);
-            Consumer c = new Consumer(in, pw);
+            Consumer c = new Consumer(reader, socketWriter, logWriter);
+
+            sendCommand("PASS oauth:" + token);
+            sendCommand("NICK " + username);
+            sendCommand("JOIN #" + username);
+            sendCommand("CAP REQ :twitch.tv/commands");
+            sendCommand("CAP REQ :twitch.tv/membership");
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
+    public void sendCommand(String str) {
+        socketWriter.println(str);
+        logWriter.println("< " + str);
+    }
+
     public void sendMessage(String str){
-        out.println("PRIVMSG #"+username+" :" + str);
+        socketWriter.println("PRIVMSG #"+username+" :" + str);
+        logWriter.println("< PRIVMSG #"+username+" :" + str);
     }
 
     public int start(String token) throws IOException {
