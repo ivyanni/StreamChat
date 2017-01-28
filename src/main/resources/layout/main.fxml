@@ -5,19 +5,36 @@
 <?import javafx.scene.layout.*?>
 <GridPane prefHeight="526.0" prefWidth="283.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.tersoft.streamchat.controller.MainController">
    <columnConstraints>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="SOMETIMES" />
    </columnConstraints>
    <rowConstraints>
-      <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" valignment="TOP" vgrow="ALWAYS" />
+      <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" vgrow="SOMETIMES" />
       <RowConstraints maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="SOMETIMES" />
       <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
-         <items>
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#handleConnect" text="Connect" />
-         </items>
-      </ToolBar>
+      <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" />
+       <GridPane>
+           <columnConstraints>
+               <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" />
+               <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" />
+           </columnConstraints>
+           <rowConstraints>
+               <RowConstraints vgrow="SOMETIMES" />
+           </rowConstraints>
+           <children>
+               <TextField fx:id="channel" onAction="#handleConnect" promptText="Channel name" GridPane.halignment="CENTER" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
+                   <GridPane.margin>
+                       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                   </GridPane.margin>
+               </TextField>
+               <Button fx:id="connectButton" mnemonicParsing="false" onAction="#handleConnect" text="Connect" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                   <GridPane.margin>
+                       <Insets left="5.0" right="5.0" />
+                   </GridPane.margin>
+               </Button>
+           </children>
+       </GridPane>
       <TextArea fx:id="log" editable="false" prefHeight="37.0" prefWidth="183.0" GridPane.rowIndex="1" />
       <GridPane GridPane.rowIndex="2">
         <columnConstraints>
@@ -28,7 +45,7 @@
           <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <TextField fx:id="message" onAction="#handleEnterPressed" GridPane.halignment="CENTER" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
+            <TextField fx:id="message" onAction="#handleSend" promptText="Message" GridPane.halignment="CENTER" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
                <GridPane.margin>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </GridPane.margin>

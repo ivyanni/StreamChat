@@ -21,8 +21,9 @@ public class Logger {
 
     public static void printLine(String content) {
         Platform.runLater(() -> {
-            if(log != null)
+            if(log != null) {
                 log.appendText(getTimeTag() + content + "\n");
+            }
         });
     }
 
