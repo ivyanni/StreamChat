@@ -6,46 +6,51 @@ import okhttp3.Response;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Timer;
 
 /**
  * Project streamchat.
  * Created by ivyanni on 21.01.2017.
  */
-public class TwitchApi {
+public class TwitchConnector {
     private static final String CLIENT_ID = "y28js5lzpxxlsmasu42tnal77l1oox";
-    public static final String AUTH_URL = "https://api.twitch.tv/kraken/oauth2/authorize" +
+    public final String AUTH_URL = "https://api.twitch.tv/kraken/oauth2/authorize" +
                                         "?response_type=token" +
                                         "&client_id=" + CLIENT_ID +
                                         "&redirect_uri=http://localhost/twitch_oauth" +
                                         "&scope=chat_login+channel_read+user_read";
-    private Client client;
-    private final String USERINFO_URL = "https://api.twitch.tv/kraken/channel";
+    private final String CHANNEL_URL = "https://api.twitch.tv/kraken/channel";
+    private TwitchClient twitchClient;
 
-    public TwitchApi() {
+    public TwitchConnector() {
     }
 
     private void connect() {
-        client = new Client("irc.chat.twitch.tv", 6667);
+        twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
+        Timer timer = new Timer();
+        timer.schedule(new ViewersUpdater(), 0, 5*60*1000);
     }
 
-    public void sendMessage(String str){
-        client.sendCommand("PRIVMSG #" + DataStorage.getUsername() + " :" + str);
-    }
-
-    public int start(String token, String channel) throws IOException {
+    public int start(String token) throws IOException {
         DataStorage.setToken(token);
-        DataStorage.setChannel(channel);
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(USERINFO_URL+"?oauth_token="+token)
+                .url(CHANNEL_URL+"?oauth_token="+token)
                 .get()
                 .build();
         Response response = client.newCall(request).execute();
         if(response.code() == 200) {
             JSONObject obj = new JSONObject(response.body().string());
+            DataStorage.setId(obj.getLong("_id"));
             DataStorage.setUsername(obj.getString("name"));
             connect();
         }
         return response.code();
+    }
+
+    public void reloadClient() {
+        twitchClient.stop();
+        twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
+        new ViewersUpdater().run();
     }
 }

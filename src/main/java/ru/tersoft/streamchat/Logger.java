@@ -23,14 +23,8 @@ public class Logger {
         Platform.runLater(() -> {
             if(log != null) {
                 log.appendText(getTimeTag() + content + "\n");
+                log.positionCaret(log.getText().length());
             }
-        });
-    }
-
-    static void printSymbol(char c) {
-        Platform.runLater(() -> {
-            if(log != null)
-                log.appendText(String.valueOf(c));
         });
     }
 

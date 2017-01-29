@@ -12,13 +12,13 @@ import io.netty.handler.codec.string.StringEncoder;
  * Project streamchat.
  * Created by ivyanni on 28.01.2017.
  */
-public class Client implements Runnable {
+public class TwitchClient implements Runnable {
     private String HOST = "irc.chat.twitch.tv";
     private int PORT = 6667;
     private ChannelPipeline pipeline;
     private Thread thread;
 
-    public Client(String host, int port) {
+    public TwitchClient(String host, int port) {
         this.HOST = host;
         this.PORT = port;
         thread = new Thread(this);
@@ -46,9 +46,10 @@ public class Client implements Runnable {
                 if(f.isSuccess()) {
                     sendCommand("PASS oauth:" + DataStorage.getToken(),
                                 "NICK " + DataStorage.getUsername(),
-                                "JOIN #" + DataStorage.getChannel(),
+                                "JOIN #" + DataStorage.getUsername(),
                                 "CAP REQ :twitch.tv/commands",
-                                "CAP REQ :twitch.tv/membership");
+                                "CAP REQ :twitch.tv/membership",
+                                "CAP REQ :twitch.tv/tags");
                 }
             });
             f.channel().closeFuture().sync();
@@ -69,5 +70,10 @@ public class Client implements Runnable {
             });
         }
         pipeline.flush();
+    }
+
+    public void stop() {
+        pipeline = null;
+        thread = null;
     }
 }
