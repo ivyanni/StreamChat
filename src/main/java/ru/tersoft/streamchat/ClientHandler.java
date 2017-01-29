@@ -9,6 +9,16 @@ import io.netty.channel.SimpleChannelInboundHandler;
  */
 public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        DataStorage.setActiveStatus("Connected");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        DataStorage.setActiveStatus("Disconnected");
+    }
+
+    @Override
     public void channelRead0(ChannelHandlerContext ctx, String message) {
         String[] strArray = message.split("\n");
         for(String str : strArray) {

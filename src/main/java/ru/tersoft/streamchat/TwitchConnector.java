@@ -25,7 +25,7 @@ public class TwitchConnector {
     public TwitchConnector() {
     }
 
-    private void connect() {
+    private void startClient() {
         twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
         Timer timer = new Timer();
         timer.schedule(new ViewersUpdater(), 0, 5*60*1000);
@@ -43,7 +43,7 @@ public class TwitchConnector {
             JSONObject obj = new JSONObject(response.body().string());
             DataStorage.setId(obj.getLong("_id"));
             DataStorage.setUsername(obj.getString("name"));
-            connect();
+            startClient();
         }
         return response.code();
     }
@@ -52,5 +52,9 @@ public class TwitchConnector {
         twitchClient.stop();
         twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
         new ViewersUpdater().run();
+    }
+
+    public void stopClient() {
+        twitchClient.stop();
     }
 }

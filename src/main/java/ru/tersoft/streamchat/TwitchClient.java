@@ -16,7 +16,8 @@ public class TwitchClient implements Runnable {
     private String HOST = "irc.chat.twitch.tv";
     private int PORT = 6667;
     private ChannelPipeline pipeline;
-    private Thread thread;
+    private volatile Thread thread;
+    private EventLoopGroup group;
 
     public TwitchClient(String host, int port) {
         this.HOST = host;
@@ -27,7 +28,7 @@ public class TwitchClient implements Runnable {
 
     @Override
     public void run() {
-        EventLoopGroup group = new NioEventLoopGroup();
+        group = new NioEventLoopGroup();
         try {
             Bootstrap boot = new Bootstrap();
             boot.group(group)
@@ -73,7 +74,7 @@ public class TwitchClient implements Runnable {
     }
 
     public void stop() {
-        pipeline = null;
+        group.shutdownGracefully();
         thread = null;
     }
 }

@@ -1,5 +1,6 @@
 package ru.tersoft.streamchat.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -9,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.StatusBar;
 import ru.tersoft.streamchat.DataStorage;
 import ru.tersoft.streamchat.Logger;
 import ru.tersoft.streamchat.TwitchConnector;
@@ -30,11 +32,14 @@ public class MainController implements Initializable {
     private Label username;
     @FXML
     private Label viewers;
+    @FXML
+    private StatusBar statusBar;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         username.textProperty().bind(DataStorage.getUsernameProperty());
         viewers.textProperty().bind(DataStorage.getViewersProperty());
+        statusBar.textProperty().bind(DataStorage.getActiveStatusProperty());
         twitchConnector = new TwitchConnector();
         prefs = Preferences.userNodeForPackage(TwitchConnector.class);
         String token = prefs.get(PREF_TOKEN, null);
@@ -89,6 +94,11 @@ public class MainController implements Initializable {
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        primaryStage.setOnCloseRequest(event -> {
+            twitchConnector.stopClient();
+            Platform.exit();
+            System.exit(0);
+        });
         Logger.setLogArea(log);
     }
 }

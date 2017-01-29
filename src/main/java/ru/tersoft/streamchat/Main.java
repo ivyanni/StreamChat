@@ -1,7 +1,6 @@
 package ru.tersoft.streamchat;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,10 +20,6 @@ public class Main extends Application {
         primaryStage.setMinWidth(500);
         primaryStage.setMinHeight(400);
         primaryStage.show();
-        primaryStage.setOnCloseRequest(event -> {
-            Platform.exit();
-            System.exit(0);
-        });
         MainController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);
     }

@@ -1,5 +1,6 @@
 package ru.tersoft.streamchat;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -12,6 +13,7 @@ public class DataStorage {
     private static StringProperty viewers = new SimpleStringProperty("0");
     private static StringProperty token = new SimpleStringProperty();
     private static StringProperty username = new SimpleStringProperty();
+    private static StringProperty activeStatus = new SimpleStringProperty("Disconnected");
 
     public static String getToken() {
         return token.getValue();
@@ -45,11 +47,15 @@ public class DataStorage {
         return viewers;
     }
 
-    public static Long getViewers() {
-        return Long.parseLong(viewers.getValue());
-    }
-
     public static void setViewers(Long viewers) {
         DataStorage.viewers.setValue(viewers.toString());
+    }
+
+    public static StringProperty getActiveStatusProperty() {
+        return activeStatus;
+    }
+
+    public static void setActiveStatus(String activeStatus) {
+        Platform.runLater(() -> DataStorage.activeStatus.setValue(activeStatus));
     }
 }

@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.StatusBar?>
 <GridPane prefHeight="526.0" prefWidth="283.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.tersoft.streamchat.controller.MainController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
@@ -16,7 +17,8 @@
    </rowConstraints>
    <children>
        <TextArea fx:id="log" editable="false" prefHeight="37.0" prefWidth="183.0" GridPane.rowIndex="2" />
-      <BorderPane GridPane.rowIndex="1">
+      <ToolBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+      <BorderPane>
          <left>
             <HBox alignment="CENTER_LEFT" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
                <children>
@@ -71,5 +73,6 @@
             </HBox>
          </right>
       </BorderPane>
+      <StatusBar fx:id="statusBar" maxHeight="-Infinity" minHeight="-Infinity" text="" GridPane.rowIndex="3" />
    </children>
 </GridPane>
