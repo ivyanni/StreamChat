@@ -41,7 +41,6 @@ public class TwitchConnector {
         Response response = client.newCall(request).execute();
         if(response.code() == 200) {
             JSONObject obj = new JSONObject(response.body().string());
-            DataStorage.setId(obj.getLong("_id"));
             DataStorage.setUsername(obj.getString("name"));
             startClient();
         }

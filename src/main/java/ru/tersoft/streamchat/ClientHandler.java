@@ -10,12 +10,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        DataStorage.setActiveStatus("Connected");
+        DataStorage.setActiveStatus(true);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        DataStorage.setActiveStatus("Disconnected");
+        DataStorage.setActiveStatus(false);
     }
 
     @Override

@@ -4,7 +4,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import org.controlsfx.control.StatusBar?>
 <GridPane prefHeight="526.0" prefWidth="283.0" xmlns="http://javafx.com/javafx/8.0.102" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.tersoft.streamchat.controller.MainController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="-Infinity" />
@@ -22,23 +21,29 @@
          <left>
             <HBox alignment="CENTER_LEFT" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
                <children>
+                  <ImageView fx:id="status" fitHeight="10.0" fitWidth="10.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@img/offline.png" />
+                     </image>
+                     <HBox.margin>
+                        <Insets left="3.0" />
+                     </HBox.margin>
+                  </ImageView>
                   <ImageView fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@twitch.png" />
+                        <Image url="@img/twitch.png" />
                      </image>
                      <viewport>
                         <Rectangle2D />
                      </viewport>
                      <HBox.margin>
-                        <Insets left="5.0" />
+                        <Insets left="1.0" />
                      </HBox.margin>
                   </ImageView>
-                  <Label fx:id="username">
-                     <padding>
-                        <Insets left="5.0" right="5.0" />
-                     </padding>
-                  </Label>
-                  <Label fx:id="viewers" />
+                  <Label fx:id="viewers">
+                     <HBox.margin>
+                        <Insets left="5.0" />
+                     </HBox.margin></Label>
                </children>
             </HBox>
          </left>
@@ -49,7 +54,7 @@
                      <graphic>
                         <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@settings.png" />
+                              <Image url="@img/settings.png" />
                            </image>
                         </ImageView>
                      </graphic>
@@ -61,18 +66,17 @@
                      <graphic>
                         <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@reload.png" />
+                              <Image url="@img/reload.png" />
                            </image>
                         </ImageView>
                      </graphic>
                      <HBox.margin>
-                        <Insets bottom="3.0" right="5.0" top="3.0" />
+                        <Insets bottom="3.0" right="3.0" top="3.0" />
                      </HBox.margin>
                   </Button>
                </children>
             </HBox>
          </right>
       </BorderPane>
-      <StatusBar fx:id="statusBar" maxHeight="-Infinity" minHeight="-Infinity" text="" GridPane.rowIndex="3" />
    </children>
 </GridPane>

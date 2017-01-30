@@ -16,7 +16,7 @@ public class ViewersUpdater extends TimerTask {
     public void run() {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(STREAM_URL+DataStorage.getId()+"?oauth_token="+DataStorage.getToken())
+                .url(STREAM_URL+DataStorage.getUsername()+"?oauth_token="+DataStorage.getToken())
                 .get()
                 .build();
         client.newCall(request).enqueue(new Callback() {
@@ -32,7 +32,7 @@ public class ViewersUpdater extends TimerTask {
                     if(!obj.isNull("stream")) {
                         JSONObject stream = obj.getJSONObject("stream");
                         DataStorage.setViewers(stream.getLong("viewers"));
-                    }
+                    } else DataStorage.setViewers(0L);
                 }
             }
         });
