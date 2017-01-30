@@ -22,6 +22,7 @@ import java.util.prefs.Preferences;
 
 public class MainController implements Initializable {
     private final String PREF_TOKEN = "access_token";
+    private final String PREF_NAME = "username";
     private Stage primaryStage;
     private TwitchConnector twitchConnector;
     private Preferences prefs;
@@ -40,8 +41,9 @@ public class MainController implements Initializable {
         twitchConnector = new TwitchConnector();
         prefs = Preferences.userNodeForPackage(TwitchConnector.class);
         String token = prefs.get(PREF_TOKEN, null);
+        String username = prefs.get(PREF_NAME, null);
         if(token != null) {
-            startTwitchChat(token);
+            startTwitchChat(token, username);
         } else {
             authorize();
         }
@@ -53,11 +55,19 @@ public class MainController implements Initializable {
         twitchConnector.reloadClient();
     }
 
-    private void startTwitchChat(String token) {
+    private void startTwitchChat(String token, String username) {
         try {
-            int responseCode = twitchConnector.start(token);
-            if (responseCode != 200) {
-                authorize();
+            DataStorage.setToken(token);
+            if(username == null) {
+                username = twitchConnector.getTwitchUsername();
+                if (username == null) {
+                    authorize();
+                } else {
+                    prefs.put(PREF_NAME, username);
+                }
+            } else {
+                DataStorage.setUsername(username);
+                twitchConnector.startClient();
             }
         } catch(IOException e) {
             e.printStackTrace();
@@ -82,7 +92,7 @@ public class MainController implements Initializable {
             if (url.startsWith("http://localhost")) {
                 String newToken = url.substring(url.indexOf("=") + 1, url.indexOf("&"));
                 prefs.put(PREF_TOKEN, newToken);
-                startTwitchChat(newToken);
+                startTwitchChat(newToken, null);
                 popup.close();
             }
         });

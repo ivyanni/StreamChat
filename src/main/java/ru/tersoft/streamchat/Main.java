@@ -19,6 +19,7 @@ public class Main extends Application {
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         primaryStage.setMinWidth(500);
         primaryStage.setMinHeight(400);
+        primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
         MainController controller = loader.getController();
         controller.setPrimaryStage(primaryStage);

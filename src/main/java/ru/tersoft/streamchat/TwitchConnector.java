@@ -25,17 +25,16 @@ public class TwitchConnector {
     public TwitchConnector() {
     }
 
-    private void startClient() {
+    public void startClient() {
         twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
         Timer timer = new Timer();
         timer.schedule(new ViewersUpdater(), 0, 5*60*1000);
     }
 
-    public int start(String token) throws IOException {
-        DataStorage.setToken(token);
+    public String getTwitchUsername() throws IOException {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url(CHANNEL_URL+"?oauth_token="+token)
+                .url(CHANNEL_URL+"?oauth_token="+DataStorage.getToken())
                 .get()
                 .build();
         Response response = client.newCall(request).execute();
@@ -43,8 +42,8 @@ public class TwitchConnector {
             JSONObject obj = new JSONObject(response.body().string());
             DataStorage.setUsername(obj.getString("name"));
             startClient();
-        }
-        return response.code();
+            return obj.getString("name");
+        } else return null;
     }
 
     public void reloadClient() {
