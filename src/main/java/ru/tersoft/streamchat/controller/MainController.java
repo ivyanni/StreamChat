@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
@@ -28,7 +27,7 @@ public class MainController implements Initializable {
     private Preferences prefs;
 
     @FXML
-    private TextArea log;
+    private WebView log;
     @FXML
     private Label viewers;
     @FXML
@@ -51,7 +50,7 @@ public class MainController implements Initializable {
 
     @FXML
     public void reload() {
-        log.clear();
+        Logger.getLogger().setLogArea(log);
         twitchConnector.reloadClient();
     }
 
@@ -106,6 +105,6 @@ public class MainController implements Initializable {
             Platform.exit();
             System.exit(0);
         });
-        Logger.setLogArea(log);
+        Logger.getLogger().setLogArea(log);
     }
 }

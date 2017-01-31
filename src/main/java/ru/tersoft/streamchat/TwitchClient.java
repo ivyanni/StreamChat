@@ -66,7 +66,7 @@ public class TwitchClient implements Runnable {
             ChannelFuture f = pipeline.write(str + "\r\n");
             f.addListener((ChannelFutureListener) future -> {
                 if(f.isSuccess()) {
-                    Logger.printLine("< " + str);
+                    Logger.getLogger().printLine("< " + str);
                 }
             });
         }

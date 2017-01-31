@@ -22,10 +22,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<String> {
     public void channelRead0(ChannelHandlerContext ctx, String message) {
         String[] strArray = message.split("\n");
         for(String str : strArray) {
-            Logger.printLine("> " + str);
+            Logger.getLogger().printLine("> " + str);
             if (str.startsWith("PING")) {
                 ctx.channel().writeAndFlush(str.replace("PING", "PONG") + "\r\n");
-                Logger.printLine("< " + str.replace("PING", "PONG"));
+                Logger.getLogger().printLine("< " + str.replace("PING", "PONG"));
             }
         }
     }

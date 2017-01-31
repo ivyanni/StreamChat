@@ -17,8 +17,10 @@ public class Main extends Application {
         primaryStage.setTitle("Stream Chat");
         primaryStage.setScene(new Scene(root, 300, 275));
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
-        primaryStage.setMinWidth(500);
-        primaryStage.setMinHeight(400);
+        primaryStage.setMinWidth(150);
+        primaryStage.setMinHeight(150);
+        primaryStage.setWidth(250);
+        primaryStage.setHeight(400);
         primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
         MainController controller = loader.getController();
