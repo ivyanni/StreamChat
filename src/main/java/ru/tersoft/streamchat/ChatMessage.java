@@ -57,9 +57,9 @@ public class ChatMessage {
         // Set emotes
         startIndex = line.indexOf("emotes=") + 7;
         String emotesLine = line.substring(startIndex, line.indexOf(";", startIndex));
+        Map<String,String> tokens = new HashMap<>();
         if(emotesLine.length() > 0) {
             emotes = emotesLine.split("/");
-            Map<String,String> tokens = new HashMap<>();
             for (String emote : emotes) {
                 int index = emote.indexOf(":");
                 String emoteId = emote.substring(0, index);
@@ -67,24 +67,31 @@ public class ChatMessage {
                 for(String pos : emotesPos) {
                     int firstIndex = Integer.parseInt(pos.substring(0, pos.indexOf("-")));
                     int lastIndex = Integer.parseInt(pos.substring(pos.indexOf("-") + 1));
-                    if(firstIndex < message.length() && lastIndex+1 < message.length()) {
-                        tokens.put(message.substring(firstIndex, lastIndex + 1),
-                                "<img style=\"vertical-align:middle\" src=\"https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0\" />");
+                    if(firstIndex <= message.length() && lastIndex+1 <= message.length()) {
+                        tokens.put(message.substring(firstIndex, lastIndex+1),
+                                "<img src='https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0' style='vertical-align:middle;' />");
                     } else break;
                 }
             }
-            String patternString = "(" + StringUtils.join(tokens.keySet(), "|") + ")";
-            pattern = Pattern.compile(patternString);
-            matcher = pattern.matcher(message);
-
-            StringBuffer sb = new StringBuffer();
-            while(matcher.find()) {
-                matcher.appendReplacement(sb, tokens.get(matcher.group(1)));
-            }
-            matcher.appendTail(sb);
-
-            message = sb.toString();
         }
+        Map<String, String> emotes = new HashMap<>();
+        emotes.putAll(tokens);
+        // Set BTTV emotes
+        emotes.putAll(BTTVHelper.getHelper().getEmotes());
+
+        String patternString = "^(" + StringUtils.join(emotes.keySet(), "|") + ")$";
+        pattern = Pattern.compile(patternString);
+        String[] words = message.split(" ");
+        StringBuilder sb = new StringBuilder();
+        for(String word : words) {
+            matcher = pattern.matcher(word);
+            if(matcher.find()) {
+                sb.append(" ").append(emotes.get(matcher.group(1)));
+            } else {
+                sb.append(" ").append(word);
+            }
+        }
+        message = sb.toString();
     }
 
     public String getUsername() {
@@ -92,8 +99,12 @@ public class ChatMessage {
     }
 
     public String toString() {
+        StringBuilder result = new StringBuilder();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.forLanguageTag("ru-RU"));
         String timeTag = "<font color=grey size=1>[" + simpleDateFormat.format(time) + "]</font> ";
-        return timeTag + "<font color=\"" + nameColor + "\">" + displayName + "</font>: " + message;
+        result.append("<div class=\"well well-sm\">")
+                .append(timeTag).append("<strong><font color='").append(nameColor).append("'>").append(displayName).append("</font></strong>: ").append(message)
+                .append("</div>");
+        return result.toString();
     }
 }

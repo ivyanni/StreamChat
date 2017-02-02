@@ -15,7 +15,7 @@ public class DataStorage {
     private static StringProperty viewers = new SimpleStringProperty("0");
     private static StringProperty token = new SimpleStringProperty();
     private static StringProperty username = new SimpleStringProperty();
-    private static ObjectProperty<Image> activeStatus = new SimpleObjectProperty<>(new Image("/layout/img/offline.png"));
+    private static ObjectProperty<Image> activeStatus = new SimpleObjectProperty<>();
 
     public static String getToken() {
         return token.getValue();
@@ -46,10 +46,5 @@ public class DataStorage {
     }
 
     public static void setActiveStatus(Boolean activeStatus) {
-        Platform.runLater(() -> {
-            if(activeStatus)
-                DataStorage.activeStatus.setValue(new Image("/layout/img/online.png"));
-            else DataStorage.activeStatus.setValue(new Image("/layout/img/offline.png"));
-        });
     }
 }

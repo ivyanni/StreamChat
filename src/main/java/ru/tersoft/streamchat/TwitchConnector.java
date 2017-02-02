@@ -6,7 +6,6 @@ import okhttp3.Response;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Timer;
 
 /**
  * Project streamchat.
@@ -27,8 +26,6 @@ public class TwitchConnector {
 
     public void startClient() {
         twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
-        Timer timer = new Timer();
-        timer.schedule(new ViewersUpdater(), 0, 5*60*1000);
     }
 
     public String getTwitchUsername() throws IOException {
@@ -49,7 +46,6 @@ public class TwitchConnector {
     public void reloadClient() {
         twitchClient.stop();
         twitchClient = new TwitchClient("irc.chat.twitch.tv", 6667);
-        new ViewersUpdater().run();
     }
 
     public void stopClient() {

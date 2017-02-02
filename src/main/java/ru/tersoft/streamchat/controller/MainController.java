@@ -1,42 +1,38 @@
 package ru.tersoft.streamchat.controller;
 
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.w3c.dom.Document;
+import ru.tersoft.streamchat.BTTVHelper;
 import ru.tersoft.streamchat.DataStorage;
 import ru.tersoft.streamchat.Logger;
 import ru.tersoft.streamchat.TwitchConnector;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
+import java.lang.reflect.Field;
 import java.util.prefs.Preferences;
 
-public class MainController implements Initializable {
+/**
+ * Project streamchat.
+ * Created by ivyanni on 31.01.2017.
+ */
+public class MainController {
     private final String PREF_TOKEN = "access_token";
     private final String PREF_NAME = "username";
-    private Stage primaryStage;
     private TwitchConnector twitchConnector;
     private Preferences prefs;
-
-    @FXML
     private WebView log;
-    @FXML
-    private Label viewers;
-    @FXML
-    private ImageView status;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        viewers.textProperty().bind(DataStorage.getViewersProperty());
-        status.imageProperty().bind(DataStorage.getActiveStatusProperty());
+    public MainController(WebView web) {
+        log = web;
+        Logger.getLogger().setLogArea(log);
+        BTTVHelper.getHelper().load();
+        log.getEngine().documentProperty().addListener(new DocListener());
         twitchConnector = new TwitchConnector();
         prefs = Preferences.userNodeForPackage(TwitchConnector.class);
         String token = prefs.get(PREF_TOKEN, null);
@@ -48,7 +44,20 @@ public class MainController implements Initializable {
         }
     }
 
-    @FXML
+    class DocListener implements ChangeListener<Document> {
+        @Override
+        public void changed(ObservableValue<? extends Document> observable, Document oldValue, Document newValue) {
+            try {
+                Field f = log.getEngine().getClass().getDeclaredField("page");
+                f.setAccessible(true);
+                com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) f.get(log.getEngine());
+                page.setBackgroundColor((new java.awt.Color(0, 0, 0, 0)).getRGB());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void reload() {
         Logger.getLogger().setLogArea(log);
         twitchConnector.reloadClient();
@@ -85,7 +94,7 @@ public class MainController implements Initializable {
         popup.setWidth(370);
         popup.setHeight(445);
         popup.setResizable(false);
-        popup.initOwner(primaryStage);
+       // popup.initOwner(primaryStage);
 
         webView.getEngine().locationProperty().addListener((observableValue, ov, url) -> {
             if (url.startsWith("http://localhost")) {
@@ -98,13 +107,7 @@ public class MainController implements Initializable {
         popup.showAndWait();
     }
 
-    public void setPrimaryStage(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-        primaryStage.setOnCloseRequest(event -> {
-            twitchConnector.stopClient();
-            Platform.exit();
-            System.exit(0);
-        });
-        Logger.getLogger().setLogArea(log);
+    public void stopAllClients() {
+        twitchConnector.stopClient();
     }
 }

@@ -3,9 +3,14 @@ package ru.tersoft.streamchat;
 import javafx.application.Platform;
 import javafx.scene.web.WebView;
 
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Project streamchat.
@@ -25,17 +30,16 @@ public class Logger {
     public void setLogArea(WebView textArea) {
         log = textArea;
         log.setContextMenuEnabled(false);
+        log.getEngine().setJavaScriptEnabled(true);
         document = new StringBuilder();
-        header = new StringBuilder().append("<html>");
-        header.append("<head>");
-        header.append("<style> body { background-color:black; color:white; } </style>");
-        header.append("   <script language=\"javascript\" type=\"text/javascript\">");
-        header.append("       function toBottom(){");
-        header.append("           window.scrollTo(0, document.body.scrollHeight);");
-        header.append("       }");
-        header.append("   </script>");
-        header.append("</head>");
-        header.append("<body style='font-family:Verdana; font-size: 13' onload='toBottom()'>");
+        header = new StringBuilder();
+        try {
+            URL url = getClass().getResource("/header.html");
+            Stream<String> strings = Files.lines(Paths.get(url.toURI()), Charset.defaultCharset());
+            strings.forEach(s -> header.append(s));
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         document.append(header);
         messages = new ArrayList<>();
     }
@@ -54,7 +58,7 @@ public class Logger {
             if(log != null) {
                 String editedLine = handleLine(content);
                 if(editedLine != null) {
-                    document.append(editedLine).append("<br />");
+                    document.append(editedLine);
                     log.getEngine().loadContent(document.toString());
                 }
             }
@@ -74,14 +78,15 @@ public class Logger {
                 deleteMessages(username);
             }
             else if(line.contains("> :tmi.twitch.tv CAP * ACK :twitch.tv/tags")) {
-                String str = "Connected to #" + DataStorage.getUsername() + ".<br />";
+                String str = "<div class=\"well well-sm\"> Connected to #" + DataStorage.getUsername() + ".</div>";
                 header.append(str);
                 document.append(str);
                 log.getEngine().loadContent(document.toString());
+                log.setVisible(true);
             }
         } else {
             if(line.contains("< PASS")) {
-                String str = "Connecting to #" + DataStorage.getUsername() + "...<br />";
+                String str = "<div class=\"well well-sm\"> Connecting to #" + DataStorage.getUsername() + "...</div>";
                 header.append(str);
                 document.append(str);
                 log.getEngine().loadContent(document.toString());

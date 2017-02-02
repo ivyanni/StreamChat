@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
@@ -37,8 +38,9 @@ public class TwitchClient implements Runnable {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             pipeline = ch.pipeline();
-                            pipeline.addLast(new StringDecoder());
-                            pipeline.addLast(new StringEncoder());
+                            pipeline.addLast("frameDecoder", new LineBasedFrameDecoder(5000));
+                            pipeline.addLast("stringDecoder", new StringDecoder());
+                            pipeline.addLast("stringEncoder", new StringEncoder());
                             pipeline.addLast(new ClientHandler());
                         }
                     });

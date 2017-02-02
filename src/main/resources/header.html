@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <style>
+            * {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -webkit-user-drag: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                user-drag: none;
+                cursor: default;
+            }
+            body {
+                overflow: hidden;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+                word-break: break-all;
+                display: table;
+                height: 100%;
+                width: 100%;
+            }
+            #container {
+                display: table-cell;
+                vertical-align: bottom;
+            }
+            .well {
+                margin-bottom: 5px;
+                border-bottom: none;
+                display: block;
+            }
+        </style>
+        <script src="bootstrap.min.js" ></script>
+        <script language="JavaScript">
+            function onBottom() {
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        </script>
+        <script language="JavaScript">
+
+        </script>
+    </head>
+    <body style='background : rgba(0,0,0,0);' onload="onBottom()" onresize="onBottom()">
+    <div id="container">
