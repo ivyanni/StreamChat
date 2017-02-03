@@ -8,6 +8,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import ru.tersoft.streamchat.controller.MainController;
+import ru.tersoft.streamchat.util.ComponentResizer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -17,10 +18,10 @@ import java.io.IOException;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends JFrame {
-    private final static String XLOC = "X_LOCATION";
-    private final static String YLOC = "Y_LOCATION";
-    private final static String WIDTH = "WINDOW_WIDTH";
-    private final static String HEIGHT = "WINDOW_HEIGHT";
+    private final static String XLOC = "x_location";
+    private final static String YLOC = "y_location";
+    private final static String WIDTH = "window_width";
+    private final static String HEIGHT = "window_height";
     private TrayIcon trayIcon;
     private MainController controller;
     private JFXPanel fxPanel;
@@ -73,7 +74,6 @@ public class MainFrame extends JFrame {
     }
 
     private void disableResizeMode() {
-        prefs = Preferences.userNodeForPackage(getClass());
         root.setStyle("-fx-background-color: transparent");
         getRootPane().setBorder(null);
         componentResizer.deregisterComponent(this);
@@ -90,16 +90,20 @@ public class MainFrame extends JFrame {
         log = new WebView();
         log.setVisible(false);
         log.setStyle("-fx-background-color: transparent");
-        log.visibleProperty().addListener((observable, oldValue, newValue) -> { if(newValue) MainFrame.this.setVisible(true); });
+        log.visibleProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue) {
+                MainFrame.this.setVisible(true);
+                createTrayIcon();
+            }
+        });
         Scene scene = new Scene(root);
         root.setStyle("-fx-background-color: transparent");
         root.getChildren().add(log);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        String cssPath = this.getClass().getResource("/bootstrap.min.css").toExternalForm();
+        String cssPath = this.getClass().getResource("/style.css").toExternalForm();
         log.getEngine().setUserStyleSheetLocation(cssPath);
         log.setFocusTraversable(false);
         controller = new MainController(log);
-        createTrayIcon();
         return scene;
     }
 
@@ -132,7 +136,6 @@ public class MainFrame extends JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             PopupMenu popup = new PopupMenu();
             MenuItem resizeItem = new MenuItem("Resize");
             log.setOnMouseClicked(mouseEvent -> {
@@ -150,11 +153,12 @@ public class MainFrame extends JFrame {
             MenuItem closeItem = new MenuItem("Close");
             closeItem.addActionListener(closeListener);
             popup.add(closeItem);
-            trayIcon = new TrayIcon(image, "Stream Chat", popup);
-
+            if(image != null) {
+                trayIcon = new TrayIcon(image, "Stream Chat", popup);
+            } else throw new NullPointerException();
             try {
                 tray.add(trayIcon);
-            } catch (AWTException e) {
+            } catch (AWTException | NullPointerException e) {
                 e.printStackTrace();
             }
         }

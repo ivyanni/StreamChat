@@ -1,4 +1,4 @@
-package ru.tersoft.streamchat;
+package ru.tersoft.streamchat.util;
 
 import okhttp3.*;
 import org.json.JSONArray;

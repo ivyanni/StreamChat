@@ -1,7 +1,8 @@
-package ru.tersoft.streamchat;
+package ru.tersoft.streamchat.util;
 
 import javafx.application.Platform;
 import javafx.scene.web.WebView;
+import ru.tersoft.streamchat.entity.ChatMessage;
 
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -22,6 +23,10 @@ public class Logger {
     private List<ChatMessage> messages;
     private StringBuilder header;
     private StringBuilder document;
+
+    private Logger() {
+
+    }
 
     public static Logger getLogger() {
         return logger;
@@ -48,7 +53,7 @@ public class Logger {
         messages.removeIf(message -> username.contains(message.getUsername()));
         document = new StringBuilder().append(header.toString());
         for(ChatMessage message : messages) {
-            document.append(message.toString()).append("<br />");
+            document.append(message.toString());
         }
         log.getEngine().loadContent(document.toString());
     }
@@ -66,6 +71,7 @@ public class Logger {
     }
 
     private String handleLine(String line) {
+        DataStorage dataStorage = DataStorage.getDataStorage();
         if(line.startsWith(">")) {
             if(line.contains("PRIVMSG")) {
                 ChatMessage message = new ChatMessage(Calendar.getInstance().getTime(), line);
@@ -73,12 +79,12 @@ public class Logger {
                 return message.toString();
             }
             else if(line.contains("CLEARCHAT")) {
-                String username = line.substring(line.indexOf("CLEARCHAT #" + DataStorage.getUsername() + " :")
-                        + 13 + DataStorage.getUsername().length());
+                String username = line.substring(line.indexOf("CLEARCHAT #" + dataStorage.getUsername() + " :")
+                        + 13 + dataStorage.getUsername().length());
                 deleteMessages(username);
             }
             else if(line.contains("> :tmi.twitch.tv CAP * ACK :twitch.tv/tags")) {
-                String str = "<div class=\"well well-sm\"> Connected to #" + DataStorage.getUsername() + ".</div>";
+                String str = "<div class=\"well\"> Connected to <strong>#" + dataStorage.getUsername() + "</strong>.</div>";
                 header.append(str);
                 document.append(str);
                 log.getEngine().loadContent(document.toString());
@@ -86,7 +92,7 @@ public class Logger {
             }
         } else {
             if(line.contains("< PASS")) {
-                String str = "<div class=\"well well-sm\"> Connecting to #" + DataStorage.getUsername() + "...</div>";
+                String str = "<div class=\"well\"> Connecting to <strong>#" + dataStorage.getUsername() + "</strong>...</div>";
                 header.append(str);
                 document.append(str);
                 log.getEngine().loadContent(document.toString());

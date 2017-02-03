@@ -1,17 +1,18 @@
 package ru.tersoft.streamchat.controller;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.web.WebView;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.w3c.dom.Document;
-import ru.tersoft.streamchat.BTTVHelper;
-import ru.tersoft.streamchat.DataStorage;
-import ru.tersoft.streamchat.Logger;
+import ru.tersoft.streamchat.MainFrame;
 import ru.tersoft.streamchat.TwitchConnector;
+import ru.tersoft.streamchat.util.BTTVHelper;
+import ru.tersoft.streamchat.util.DataStorage;
+import ru.tersoft.streamchat.util.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,6 +23,11 @@ import java.util.prefs.Preferences;
  * Created by ivyanni on 31.01.2017.
  */
 public class MainController {
+    private final String AUTH_URL = "https://api.twitch.tv/kraken/oauth2/authorize" +
+            "?response_type=token" +
+            "&client_id=" + DataStorage.CLIENT_ID +
+            "&redirect_uri=http://localhost/twitch_oauth" +
+            "&scope=chat_login+channel_read+user_read";
     private final String PREF_TOKEN = "access_token";
     private final String PREF_NAME = "username";
     private TwitchConnector twitchConnector;
@@ -34,7 +40,7 @@ public class MainController {
         BTTVHelper.getHelper().load();
         log.getEngine().documentProperty().addListener(new DocListener());
         twitchConnector = new TwitchConnector();
-        prefs = Preferences.userNodeForPackage(TwitchConnector.class);
+        prefs = Preferences.userNodeForPackage(MainFrame.class);
         String token = prefs.get(PREF_TOKEN, null);
         String username = prefs.get(PREF_NAME, null);
         if(token != null) {
@@ -65,7 +71,7 @@ public class MainController {
 
     private void startTwitchChat(String token, String username) {
         try {
-            DataStorage.setToken(token);
+            DataStorage.getDataStorage().setToken(token);
             if(username == null) {
                 username = twitchConnector.getTwitchUsername();
                 if (username == null) {
@@ -74,7 +80,7 @@ public class MainController {
                     prefs.put(PREF_NAME, username);
                 }
             } else {
-                DataStorage.setUsername(username);
+                DataStorage.getDataStorage().setUsername(username);
                 twitchConnector.startClient();
             }
         } catch(IOException e) {
@@ -83,28 +89,32 @@ public class MainController {
     }
 
     private void authorize() {
-        WebView webView = new WebView();
-        webView.getEngine().load(twitchConnector.AUTH_URL);
+        Platform.runLater(() -> {
+            WebView webView = new WebView();
+            webView.getEngine().load(AUTH_URL);
 
-        Stage popup = new Stage();
-        popup.setScene(new Scene((webView)));
-        popup.initModality(Modality.APPLICATION_MODAL);
-        popup.setIconified(false);
-        popup.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
-        popup.setWidth(370);
-        popup.setHeight(445);
-        popup.setResizable(false);
-       // popup.initOwner(primaryStage);
+            Stage popup = new Stage();
+            popup.setScene(new Scene((webView)));
+            popup.initStyle(StageStyle.UTILITY);
+            popup.setTitle("Authentication required");
+            popup.setWidth(370);
+            popup.setHeight(445);
+            popup.setResizable(false);
+            popup.setOnCloseRequest(event -> {
+                Platform.exit();
+                System.exit(0);
+            });
 
-        webView.getEngine().locationProperty().addListener((observableValue, ov, url) -> {
-            if (url.startsWith("http://localhost")) {
-                String newToken = url.substring(url.indexOf("=") + 1, url.indexOf("&"));
-                prefs.put(PREF_TOKEN, newToken);
-                startTwitchChat(newToken, null);
-                popup.close();
-            }
+            webView.getEngine().locationProperty().addListener((observableValue, ov, url) -> {
+                if (url.startsWith("http://localhost")) {
+                    String newToken = url.substring(url.indexOf("=") + 1, url.indexOf("&"));
+                    prefs.put(PREF_TOKEN, newToken);
+                    startTwitchChat(newToken, null);
+                    popup.close();
+                }
+            });
+            popup.show();
         });
-        popup.showAndWait();
     }
 
     public void stopAllClients() {

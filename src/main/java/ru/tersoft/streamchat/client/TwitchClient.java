@@ -1,4 +1,4 @@
-package ru.tersoft.streamchat;
+package ru.tersoft.streamchat.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -8,27 +8,29 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import ru.tersoft.streamchat.util.DataStorage;
+import ru.tersoft.streamchat.util.Logger;
 
 /**
  * Project streamchat.
  * Created by ivyanni on 28.01.2017.
  */
 public class TwitchClient implements Runnable {
-    private String HOST = "irc.chat.twitch.tv";
-    private int PORT = 6667;
     private ChannelPipeline pipeline;
     private volatile Thread thread;
     private EventLoopGroup group;
 
-    public TwitchClient(String host, int port) {
-        this.HOST = host;
-        this.PORT = port;
+    public TwitchClient() {
+    }
+
+    public void start() {
         thread = new Thread(this);
         thread.start();
     }
 
     @Override
     public void run() {
+        DataStorage dataStorage = DataStorage.getDataStorage();
         group = new NioEventLoopGroup();
         try {
             Bootstrap boot = new Bootstrap();
@@ -44,12 +46,12 @@ public class TwitchClient implements Runnable {
                             pipeline.addLast(new ClientHandler());
                         }
                     });
-            ChannelFuture f = boot.connect(HOST, PORT).sync();
+            ChannelFuture f = boot.connect("35.160.173.203", 6667).sync();
             f.addListener((ChannelFutureListener) future -> {
                 if(f.isSuccess()) {
-                    sendCommand("PASS oauth:" + DataStorage.getToken(),
-                                "NICK " + DataStorage.getUsername(),
-                                "JOIN #" + DataStorage.getUsername(),
+                    sendCommand("PASS oauth:" + dataStorage.getToken(),
+                                "NICK " + dataStorage.getUsername(),
+                                "JOIN #" + dataStorage.getUsername(),
                                 "CAP REQ :twitch.tv/commands",
                                 "CAP REQ :twitch.tv/membership",
                                 "CAP REQ :twitch.tv/tags");
@@ -63,7 +65,7 @@ public class TwitchClient implements Runnable {
         }
     }
 
-    public void sendCommand(String... msg) {
+    private void sendCommand(String... msg) {
         for(String str : msg) {
             ChannelFuture f = pipeline.write(str + "\r\n");
             f.addListener((ChannelFutureListener) future -> {
@@ -76,7 +78,9 @@ public class TwitchClient implements Runnable {
     }
 
     public void stop() {
-        group.shutdownGracefully();
+        if(group != null) {
+            group.shutdownGracefully();
+        }
         thread = null;
     }
 }

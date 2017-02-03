@@ -1,7 +1,9 @@
-package ru.tersoft.streamchat;
+package ru.tersoft.streamchat.client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import ru.tersoft.streamchat.util.DataStorage;
+import ru.tersoft.streamchat.util.Logger;
 
 /**
  * Project streamchat.
@@ -10,12 +12,12 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ClientHandler extends SimpleChannelInboundHandler<String> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        DataStorage.setActiveStatus(true);
+        DataStorage.getDataStorage().setActiveStatus(true);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        DataStorage.setActiveStatus(false);
+        DataStorage.getDataStorage().setActiveStatus(false);
     }
 
     @Override

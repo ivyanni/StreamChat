@@ -1,6 +1,8 @@
-package ru.tersoft.streamchat;
+package ru.tersoft.streamchat.entity;
 
 import com.sun.deploy.util.StringUtils;
+import ru.tersoft.streamchat.util.BTTVHelper;
+import ru.tersoft.streamchat.util.DataStorage;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,6 +26,7 @@ public class ChatMessage {
     private String message;
 
     public ChatMessage(Date time, String line) {
+        DataStorage dataStorage = DataStorage.getDataStorage();
         // Set time
         this.time = time;
         // Set empty displayName
@@ -32,7 +35,25 @@ public class ChatMessage {
         int startIndex = line.indexOf("color=") + 6;
         nameColor = line.substring(startIndex, line.indexOf(";", startIndex));
         // Set badges
-        startIndex = line.indexOf("@badges=") + 8;
+        handleBadges(line);
+        // Set display name
+        startIndex = line.indexOf("display-name=") + 13;
+        displayName += " " + line.substring(startIndex, line.indexOf(";", startIndex));
+        // Set message
+        startIndex = line.indexOf("PRIVMSG #" + dataStorage.getUsername() + " :") + 11 + dataStorage.getUsername().length();
+        message = line.substring(startIndex);
+        // Set username
+        Pattern pattern = Pattern.compile(".*@(.*?).tmi.twitch.tv");
+        Matcher matcher = pattern.matcher(line);
+        while (matcher.find()) {
+            username = matcher.group(1);
+        }
+        // Set emotes
+        handleEmotes(line);
+    }
+
+    private void handleBadges(String line) {
+        int startIndex = line.indexOf("@badges=") + 8;
         String badgesLine = line.substring(startIndex, line.indexOf(";"));
         if(badgesLine.length() > 0) {
             badges = badgesLine.split(",");
@@ -42,20 +63,10 @@ public class ChatMessage {
                 displayName += "<img style=\"vertical-align:middle\" src=\"https://static-cdn.jtvnw.net/chat-badges/" + badgeName + ".png\" />";
             }
         }
-        // Set display name
-        startIndex = line.indexOf("display-name=") + 13;
-        displayName += " " + line.substring(startIndex, line.indexOf(";", startIndex));
-        // Set message
-        startIndex = line.indexOf("PRIVMSG #"+DataStorage.getUsername()+" :") + 11 + DataStorage.getUsername().length();
-        message = line.substring(startIndex);
-        // Set username
-        Pattern pattern = Pattern.compile(".*@(.*?).tmi.twitch.tv");
-        Matcher matcher = pattern.matcher(line);
-        while (matcher.find()) {
-            username = matcher.group(1);
-        }
-        // Set emotes
-        startIndex = line.indexOf("emotes=") + 7;
+    }
+
+    private void handleEmotes(String line) {
+        int startIndex = line.indexOf("emotes=") + 7;
         String emotesLine = line.substring(startIndex, line.indexOf(";", startIndex));
         Map<String,String> tokens = new HashMap<>();
         if(emotesLine.length() > 0) {
@@ -76,17 +87,28 @@ public class ChatMessage {
         }
         Map<String, String> emotes = new HashMap<>();
         emotes.putAll(tokens);
+
         // Set BTTV emotes
         emotes.putAll(BTTVHelper.getHelper().getEmotes());
 
         String patternString = "^(" + StringUtils.join(emotes.keySet(), "|") + ")$";
-        pattern = Pattern.compile(patternString);
+        Pattern pattern = Pattern.compile(patternString);
         String[] words = message.split(" ");
         StringBuilder sb = new StringBuilder();
         for(String word : words) {
-            matcher = pattern.matcher(word);
+            if(word.startsWith("@")) {
+                sb.append(" <strong>").append(word).append("</strong>");
+                continue;
+            }
+            Matcher matcher = pattern.matcher(word);
             if(matcher.find()) {
-                sb.append(" ").append(emotes.get(matcher.group(1)));
+                String str = matcher.group(1);
+                str = str.replaceAll("[(]", "[(]");
+                str = str.replaceAll("[)]", "[)]");
+                str = str.replaceAll("[*]", "[*]");
+                str = str.replaceAll("[:]", "[:]");
+                str = str.replaceAll("[']", "[']");
+                sb.append(" ").append(emotes.get(str));
             } else {
                 sb.append(" ").append(word);
             }
@@ -102,7 +124,7 @@ public class ChatMessage {
         StringBuilder result = new StringBuilder();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.forLanguageTag("ru-RU"));
         String timeTag = "<font color=grey size=1>[" + simpleDateFormat.format(time) + "]</font> ";
-        result.append("<div class=\"well well-sm\">")
+        result.append("<div class=\"well\">")
                 .append(timeTag).append("<strong><font color='").append(nameColor).append("'>").append(displayName).append("</font></strong>: ").append(message)
                 .append("</div>");
         return result.toString();
