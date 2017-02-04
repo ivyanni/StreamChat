@@ -1,14 +1,14 @@
 package ru.tersoft.streamchat.entity;
 
 import com.sun.deploy.util.StringUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Text;
 import ru.tersoft.streamchat.util.BTTVHelper;
 import ru.tersoft.streamchat.util.DataStorage;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,8 +18,9 @@ import java.util.regex.Pattern;
  */
 public class ChatMessage {
     private Date time;
-    private String[] badges;
-    private String[] emotes;
+    private String id;
+    private List<String> badges;
+    Map<String,String> tokens;
     private String nameColor;
     private String username;
     private String displayName;
@@ -34,6 +35,9 @@ public class ChatMessage {
         // Set name color
         int startIndex = line.indexOf("color=") + 6;
         nameColor = line.substring(startIndex, line.indexOf(";", startIndex));
+        // Set id
+        startIndex = line.indexOf("id=") + 3;
+        id = line.substring(startIndex, line.indexOf(";", startIndex));
         // Set badges
         handleBadges(line);
         // Set display name
@@ -56,21 +60,22 @@ public class ChatMessage {
         int startIndex = line.indexOf("@badges=") + 8;
         String badgesLine = line.substring(startIndex, line.indexOf(";"));
         if(badgesLine.length() > 0) {
-            badges = badgesLine.split(",");
-            for (String badge : badges) {
+            String[] allBadges = badgesLine.split(",");
+            badges = new ArrayList<>();
+            for (String badge : allBadges) {
                 String badgeName = badge.substring(0, badge.indexOf("/"));
                 if(badgeName.equals("moderator")) badgeName = "mod";
-                displayName += "<img style=\"vertical-align:middle\" src=\"https://static-cdn.jtvnw.net/chat-badges/" + badgeName + ".png\" />";
+                badges.add("https://static-cdn.jtvnw.net/chat-badges/" + badgeName + ".png");
             }
         }
     }
 
     private void handleEmotes(String line) {
         int startIndex = line.indexOf("emotes=") + 7;
+        tokens = new HashMap<>();
         String emotesLine = line.substring(startIndex, line.indexOf(";", startIndex));
-        Map<String,String> tokens = new HashMap<>();
         if(emotesLine.length() > 0) {
-            emotes = emotesLine.split("/");
+            String[] emotes = emotesLine.split("/");
             for (String emote : emotes) {
                 int index = emote.indexOf(":");
                 String emoteId = emote.substring(0, index);
@@ -80,24 +85,44 @@ public class ChatMessage {
                     int lastIndex = Integer.parseInt(pos.substring(pos.indexOf("-") + 1));
                     if(firstIndex <= message.length() && lastIndex+1 <= message.length()) {
                         tokens.put(message.substring(firstIndex, lastIndex+1),
-                                "<img src='https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0' style='vertical-align:middle;' />");
+                                "https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0");
                     } else break;
                 }
             }
         }
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public Element getElement(Document document) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.forLanguageTag("ru-RU"));
+
+        Element nameNode = document.createElement("font");
+        nameNode.setAttribute("color", nameColor);
+        for(String badge : badges) {
+            Element img = document.createElement("img");
+            img.setAttribute("src", badge);
+            nameNode.appendChild(img);
+        }
+        Text name = document.createTextNode(displayName + ": ");
+        nameNode.appendChild(name);
+
+        Element messageNode = document.createElement("span");
+
         Map<String, String> emotes = new HashMap<>();
         emotes.putAll(tokens);
-
         // Set BTTV emotes
         emotes.putAll(BTTVHelper.getHelper().getEmotes());
-
         String patternString = "^(" + StringUtils.join(emotes.keySet(), "|") + ")$";
         Pattern pattern = Pattern.compile(patternString);
         String[] words = message.split(" ");
-        StringBuilder sb = new StringBuilder();
         for(String word : words) {
             if(word.startsWith("@")) {
-                sb.append(" <strong>").append(word).append("</strong>");
+                Element text = document.createElement("strong");
+                text.setTextContent(word);
+                messageNode.appendChild(text);
                 continue;
             }
             Matcher matcher = pattern.matcher(word);
@@ -108,25 +133,27 @@ public class ChatMessage {
                 str = str.replaceAll("[*]", "[*]");
                 str = str.replaceAll("[:]", "[:]");
                 str = str.replaceAll("[']", "[']");
-                sb.append(" ").append(emotes.get(str));
+                Element img = document.createElement("img");
+                img.setAttribute("src", emotes.get(str));
+                img.setAttribute("class", "emote");
+                messageNode.appendChild(img);
             } else {
-                sb.append(" ").append(word);
+                Text msg = document.createTextNode(word);
+                messageNode.appendChild(msg);
             }
         }
-        message = sb.toString();
-    }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String toString() {
-        StringBuilder result = new StringBuilder();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.forLanguageTag("ru-RU"));
-        String timeTag = "<font color=grey size=1>[" + simpleDateFormat.format(time) + "]</font> ";
-        result.append("<div class=\"well\">")
-                .append(timeTag).append("<strong><font color='").append(nameColor).append("'>").append(displayName).append("</font></strong>: ").append(message)
-                .append("</div>");
-        return result.toString();
+        Element div = document.createElement("span");
+        Element timeNode = document.createElement("font");
+        timeNode.setAttribute("color", "grey");
+        timeNode.setAttribute("size", "1");
+        timeNode.setTextContent("[" + simpleDateFormat.format(time) + "] ");
+        Element strongNode = document.createElement("strong");
+        strongNode.appendChild(nameNode);
+        div.appendChild(timeNode);
+        div.appendChild(strongNode);
+        div.appendChild(messageNode);
+        div.setAttribute("id", id);
+        return div;
     }
 }

@@ -100,7 +100,7 @@ public class MainFrame extends JFrame {
         root.setStyle("-fx-background-color: transparent");
         root.getChildren().add(log);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        String cssPath = this.getClass().getResource("/style.css").toExternalForm();
+        String cssPath = this.getClass().getResource("/darkstyle.css").toExternalForm();
         log.getEngine().setUserStyleSheetLocation(cssPath);
         log.setFocusTraversable(false);
         controller = new MainController(log);

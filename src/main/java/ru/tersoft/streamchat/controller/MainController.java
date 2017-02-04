@@ -1,13 +1,10 @@
 package ru.tersoft.streamchat.controller;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.w3c.dom.Document;
 import ru.tersoft.streamchat.MainFrame;
 import ru.tersoft.streamchat.TwitchConnector;
 import ru.tersoft.streamchat.util.BTTVHelper;
@@ -15,7 +12,6 @@ import ru.tersoft.streamchat.util.DataStorage;
 import ru.tersoft.streamchat.util.Logger;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.prefs.Preferences;
 
 /**
@@ -38,7 +34,8 @@ public class MainController {
         log = web;
         Logger.getLogger().setLogArea(log);
         BTTVHelper.getHelper().load();
-        log.getEngine().documentProperty().addListener(new DocListener());
+        final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(log.getEngine());
+        webPage.setBackgroundColor(0);
         twitchConnector = new TwitchConnector();
         prefs = Preferences.userNodeForPackage(MainFrame.class);
         String token = prefs.get(PREF_TOKEN, null);
@@ -47,20 +44,6 @@ public class MainController {
             startTwitchChat(token, username);
         } else {
             authorize();
-        }
-    }
-
-    class DocListener implements ChangeListener<Document> {
-        @Override
-        public void changed(ObservableValue<? extends Document> observable, Document oldValue, Document newValue) {
-            try {
-                Field f = log.getEngine().getClass().getDeclaredField("page");
-                f.setAccessible(true);
-                com.sun.webkit.WebPage page = (com.sun.webkit.WebPage) f.get(log.getEngine());
-                page.setBackgroundColor((new java.awt.Color(0, 0, 0, 0)).getRGB());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 

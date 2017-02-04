@@ -15,8 +15,6 @@ import java.util.Map;
 public class BTTVHelper {
     private static BTTVHelper bttvHelper = new BTTVHelper();
     private final String EMOTE_API_URL = "https://api.betterttv.net/2/emotes";
-    private final String IMG_HEAD = "<img style=\"vertical-align:middle\" src=\"";
-    private final String IMG_TAIL = "\" />";
     private final String EMOTE_URL = "http://cdn.betterttv.net/emote/";
     private Map<String, String> emotes;
 
@@ -56,7 +54,7 @@ public class BTTVHelper {
                             code = code.replaceAll("[:]", "[:]");
                             code = code.replaceAll("[']", "[']");
                             emotes.put(code,
-                                    IMG_HEAD + EMOTE_URL + emote.getString("id") + "/1x" + IMG_TAIL);
+                                    EMOTE_URL + emote.getString("id") + "/1x");
                         }
                     }
                 }
