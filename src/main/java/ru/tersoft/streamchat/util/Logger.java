@@ -15,6 +15,7 @@ import ru.tersoft.streamchat.entity.ChatMessage;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 /**
@@ -27,6 +28,7 @@ public class Logger {
     private WebView chatView;
     private List<ChatMessage> messages;
     private Preferences prefs;
+    private ResourceBundle bundle;
 
     private Logger() {
 
@@ -36,8 +38,9 @@ public class Logger {
         return logger;
     }
 
-    public void start(WebView log) {
+    public void start(WebView log, ResourceBundle bundle) {
         this.chatView = log;
+        this.bundle = bundle;
         prefs = Preferences.userNodeForPackage(MainFrame.class);
         this.chatView.setContextMenuEnabled(false);
         createDocument();
@@ -145,7 +148,7 @@ public class Logger {
             }
             else if(line.contains("> :tmi.twitch.tv CAP * ACK :twitch.tv/tags")) {
                 Element text = chatView.getEngine().getDocument().createElement("span");
-                text.appendChild(chatView.getEngine().getDocument().createTextNode("Connected to "));
+                text.appendChild(chatView.getEngine().getDocument().createTextNode(bundle.getString("finish_connect") + " "));
                 Element channelName = chatView.getEngine().getDocument().createElement("strong");
                 channelName.setTextContent("#" + dataStorage.getUsername());
                 text.appendChild(channelName);
@@ -155,7 +158,7 @@ public class Logger {
         } else {
             if(line.contains("< PASS")) {
                 Element text = chatView.getEngine().getDocument().createElement("span");
-                text.appendChild(chatView.getEngine().getDocument().createTextNode("Connecting to "));
+                text.appendChild(chatView.getEngine().getDocument().createTextNode(bundle.getString("start_connect") + " "));
                 Element channelName = chatView.getEngine().getDocument().createElement("strong");
                 channelName.setTextContent("#" + dataStorage.getUsername());
                 text.appendChild(channelName);

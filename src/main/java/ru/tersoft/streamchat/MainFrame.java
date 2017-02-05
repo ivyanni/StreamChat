@@ -15,6 +15,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 public class MainFrame extends JFrame {
@@ -22,6 +24,7 @@ public class MainFrame extends JFrame {
     private final static String YLOC = "y_location";
     private final static String WIDTH = "window_width";
     private final static String HEIGHT = "window_height";
+    private final static String LOCALE = "locale";
 
     private TrayIcon trayIcon;
     private MainController controller;
@@ -30,11 +33,14 @@ public class MainFrame extends JFrame {
     private ComponentResizer componentResizer;
     private StackPane root;
     private Preferences prefs;
+    private ResourceBundle bundle;
 
     class Delta { double x, y; }
 
     private MainFrame() {
         prefs = Preferences.userNodeForPackage(getClass());
+        String loc = prefs.get(LOCALE, Locale.getDefault().getLanguage());
+        bundle = ResourceBundle.getBundle("locale/strings", new Locale(loc));
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
         setUndecorated(true);
@@ -102,7 +108,7 @@ public class MainFrame extends JFrame {
         root.getChildren().add(log);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         log.setFocusTraversable(false);
-        controller = new MainController(log);
+        controller = new MainController(log, bundle);
         return scene;
     }
 
@@ -117,11 +123,11 @@ public class MainFrame extends JFrame {
     });
 
     private void chooseResizeAction(MenuItem resizeItem) {
-        if(resizeItem.getLabel().equals("Resize")) {
-            resizeItem.setLabel("Stop resizing");
+        if(resizeItem.getLabel().equals(bundle.getString("resize"))) {
+            resizeItem.setLabel(bundle.getString("stop_resize"));
             enableResizeMode();
         } else {
-            resizeItem.setLabel("Resize");
+            resizeItem.setLabel(bundle.getString("resize"));
             disableResizeMode();
         }
     }
@@ -136,7 +142,7 @@ public class MainFrame extends JFrame {
                 e.printStackTrace();
             }
             PopupMenu popup = new PopupMenu();
-            MenuItem resizeItem = new MenuItem("Resize");
+            MenuItem resizeItem = new MenuItem(bundle.getString("resize"));
             log.setOnMouseClicked(mouseEvent -> {
                 if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                     if(mouseEvent.getClickCount() == 2) {
@@ -146,10 +152,10 @@ public class MainFrame extends JFrame {
             });
             resizeItem.addActionListener(e -> chooseResizeAction(resizeItem));
             popup.add(resizeItem);
-            MenuItem reloadItem = new MenuItem("Reload");
+            MenuItem reloadItem = new MenuItem(bundle.getString("reload"));
             reloadItem.addActionListener(e -> controller.reload());
             popup.add(reloadItem);
-            MenuItem closeItem = new MenuItem("Close");
+            MenuItem closeItem = new MenuItem(bundle.getString("exit"));
             closeItem.addActionListener(closeListener);
             popup.add(closeItem);
             if(image != null) {

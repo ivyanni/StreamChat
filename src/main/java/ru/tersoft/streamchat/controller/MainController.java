@@ -12,6 +12,7 @@ import ru.tersoft.streamchat.util.DataStorage;
 import ru.tersoft.streamchat.util.Logger;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import java.util.prefs.Preferences;
 
 /**
@@ -28,9 +29,11 @@ public class MainController {
     private static final String PREF_NAME = "username";
     private TwitchConnector twitchConnector;
     private Preferences prefs;
+    private ResourceBundle bundle;
 
-    public MainController(WebView web) {
-        Logger.getLogger().start(web);
+    public MainController(WebView web, ResourceBundle bundle) {
+        Logger.getLogger().start(web, bundle);
+        this.bundle = bundle;
         BTTVHelper.getHelper().load();
         final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(web.getEngine());
         webPage.setBackgroundColor(0);
@@ -77,9 +80,10 @@ public class MainController {
             Stage popup = new Stage();
             popup.setScene(new Scene((webView)));
             popup.initStyle(StageStyle.UTILITY);
-            popup.setTitle("Authentication required");
+            popup.setTitle(bundle.getString("required_auth"));
             popup.setWidth(370);
             popup.setHeight(445);
+            popup.setAlwaysOnTop(true);
             popup.setResizable(false);
             popup.setOnCloseRequest(event -> {
                 Platform.exit();
