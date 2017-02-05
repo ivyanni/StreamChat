@@ -57,17 +57,21 @@ public class ChatMessage {
     }
 
     private void handleBadges(String line) {
+        badges = new ArrayList<>();
         int startIndex = line.indexOf("@badges=") + 8;
         String badgesLine = line.substring(startIndex, line.indexOf(";"));
         if(badgesLine.length() > 0) {
             String[] allBadges = badgesLine.split(",");
-            badges = new ArrayList<>();
             for (String badge : allBadges) {
                 String badgeName = badge.substring(0, badge.indexOf("/"));
                 if(badgeName.equals("moderator")) badgeName = "mod";
                 badges.add("https://static-cdn.jtvnw.net/chat-badges/" + badgeName + ".png");
             }
         }
+    }
+
+    public String getId() {
+        return id;
     }
 
     private void handleEmotes(String line) {
@@ -121,7 +125,7 @@ public class ChatMessage {
         for(String word : words) {
             if(word.startsWith("@")) {
                 Element text = document.createElement("strong");
-                text.setTextContent(word);
+                text.setTextContent(" " + word);
                 messageNode.appendChild(text);
                 continue;
             }
@@ -136,13 +140,14 @@ public class ChatMessage {
                 Element img = document.createElement("img");
                 img.setAttribute("src", emotes.get(str));
                 img.setAttribute("class", "emote");
+                Text space = document.createTextNode(" ");
+                messageNode.appendChild(space);
                 messageNode.appendChild(img);
             } else {
-                Text msg = document.createTextNode(word);
+                Text msg = document.createTextNode(" " + word);
                 messageNode.appendChild(msg);
             }
         }
-
         Element div = document.createElement("span");
         Element timeNode = document.createElement("font");
         timeNode.setAttribute("color", "grey");

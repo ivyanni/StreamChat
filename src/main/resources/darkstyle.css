@@ -38,7 +38,8 @@ div img {
 }
 .emote {
     height: 25px;
-    width: auto;
+    width: 25px;
+    object-fit: contain;
 }
 .well {
     min-height: 24px;

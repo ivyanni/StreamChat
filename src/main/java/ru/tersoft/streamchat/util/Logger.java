@@ -9,14 +9,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import ru.tersoft.streamchat.entity.ChatMessage;
 
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Project streamchat.
@@ -26,9 +21,6 @@ public class Logger {
     private static Logger logger = new Logger();
     private WebView log;
     private List<ChatMessage> messages;
-    private StringBuilder header;
-    private StringBuilder document;
-    private double size;
 
     private Logger() {
 
@@ -42,27 +34,26 @@ public class Logger {
         log = textArea;
         log.setContextMenuEnabled(false);
         log.getEngine().setJavaScriptEnabled(true);
-        document = new StringBuilder();
-        header = new StringBuilder();
-        try {
-            URL url = getClass().getResource("/header.html");
-            Stream<String> strings = Files.lines(Paths.get(url.toURI()), Charset.defaultCharset());
-            strings.forEach(s -> header.append(s));
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        document.append(header);
-        log.getEngine().loadContent(document.toString());
+        log.getEngine().loadContent("<html>\n");
+        log.widthProperty().addListener(new SizeListener());
         messages = new ArrayList<>();
     }
 
     private void deleteMessages(String username) {
-        messages.removeIf(message -> username.contains(message.getUsername()));
-        document = new StringBuilder().append(header.toString());
+        Element container = log.getEngine().getDocument().getElementById("container");
         for(ChatMessage message : messages) {
-            document.append(message.toString());
+            if(message.getUsername().equals(username)) {
+                Element msg = log.getEngine().getDocument().getElementById(message.getId());
+                container.removeChild(msg);
+            }
         }
-        log.getEngine().loadContent(document.toString());
+        messages.removeIf(message -> username.contains(message.getUsername()));
+        NodeList elements = container.getElementsByTagName("div");
+        List<Element> nodes = new ArrayList<>();
+        for (int i = elements.getLength() - 1; i >= 0; i--) {
+            nodes.add((Element) elements.item(i));
+        }
+        recountMargin(nodes, 0);
     }
 
     public void printLine(String content) {
@@ -88,32 +79,36 @@ public class Logger {
                     String id = element.getAttribute("id");
                     Integer result = (Integer) log.getEngine().executeScript("document.getElementById('" + id + "').scrollHeight");
                     int height = result + 5;
-                    for (Element node : nodes) {
-                        id = node.getAttribute("id");
-                        result = (Integer) log.getEngine().executeScript("document.getElementById('" + id + "').scrollHeight");
-                        node.setAttribute("style", "bottom: " + height + "px;");
-                        height += result + 5;
-                    }
-                    log.widthProperty().addListener(new SizeListener());
+                    recountMargin(nodes, height);
                 }
             }
         });
     }
 
+    private void recountMargin(List<Element> nodes, int height) {
+        for (Element node : nodes) {
+            String id = node.getAttribute("id");
+            Integer result = (Integer) log.getEngine().executeScript("document.getElementById('" + id + "').scrollHeight");
+            Integer screenHeight = (Integer) log.getEngine().executeScript("document.getElementById('container').scrollHeight");
+            if(height + result >= screenHeight) {
+                node.setAttribute("style", "visibility: hidden; bottom: " + height + "px;");
+            } else {
+                node.setAttribute("style", "visibility: visible; bottom: " + height + "px;");
+            }
+            height += result + 5;
+        }
+    }
+
     class SizeListener implements ChangeListener<Number> {
         @Override
         public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-            NodeList prevElements = log.getEngine().getDocument().getElementById("container").getElementsByTagName("div");
-            List<Element> nodes = new ArrayList<>();
-            for (int i = prevElements.getLength() - 1; i >= 0; i--) {
-                nodes.add((Element) prevElements.item(i));
-            }
-            int height = 0;
-            for (Element node : nodes) {
-                String id = node.getAttribute("id");
-                Integer result = (Integer) log.getEngine().executeScript("document.getElementById('" + id + "').scrollHeight");
-                node.setAttribute("style", "bottom: " + height + "px;");
-                height += result + 5;
+            if(log.getEngine().getDocument() != null) {
+                NodeList prevElements = log.getEngine().getDocument().getElementById("container").getElementsByTagName("div");
+                List<Element> nodes = new ArrayList<>();
+                for (int i = prevElements.getLength() - 1; i >= 0; i--) {
+                    nodes.add((Element) prevElements.item(i));
+                }
+                recountMargin(nodes, 0);
             }
         }
     }
@@ -142,10 +137,7 @@ public class Logger {
             }
         } else {
             if(line.contains("< PASS")) {
-                Node body = log.getEngine().getDocument().getElementsByTagName("body").item(0);
-                Element container = log.getEngine().getDocument().createElement("div");
-                container.setAttribute("id", "container");
-                body.appendChild(container);
+                constructHtml();
                 Element text = log.getEngine().getDocument().createElement("span");
                 text.appendChild(log.getEngine().getDocument().createTextNode("Connecting to "));
                 Element channelName = log.getEngine().getDocument().createElement("strong");
@@ -158,5 +150,17 @@ public class Logger {
             }
         }
         return null;
+    }
+
+    private void constructHtml() {
+        if(log.getEngine().getDocument() != null) {
+            Node html = log.getEngine().getDocument().getElementsByTagName("html").item(0);
+            Node body = log.getEngine().getDocument().createElement("body");
+            ((Element) body).setAttribute("style", "background : rgba(0,0,0,0);");
+            html.appendChild(body);
+            Element container = log.getEngine().getDocument().createElement("div");
+            container.setAttribute("id", "container");
+            body.appendChild(container);
+        }
     }
 }
