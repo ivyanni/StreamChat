@@ -19,22 +19,20 @@ import java.util.prefs.Preferences;
  * Created by ivyanni on 31.01.2017.
  */
 public class MainController {
-    private final String AUTH_URL = "https://api.twitch.tv/kraken/oauth2/authorize" +
+    private static final String AUTH_URL = "https://api.twitch.tv/kraken/oauth2/authorize" +
             "?response_type=token" +
             "&client_id=" + DataStorage.CLIENT_ID +
             "&redirect_uri=http://localhost/twitch_oauth" +
             "&scope=chat_login+channel_read+user_read";
-    private final String PREF_TOKEN = "access_token";
-    private final String PREF_NAME = "username";
+    private static final String PREF_TOKEN = "access_token";
+    private static final String PREF_NAME = "username";
     private TwitchConnector twitchConnector;
     private Preferences prefs;
-    private WebView log;
 
     public MainController(WebView web) {
-        log = web;
-        Logger.getLogger().setLogArea(log);
+        Logger.getLogger().start(web);
         BTTVHelper.getHelper().load();
-        final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(log.getEngine());
+        final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(web.getEngine());
         webPage.setBackgroundColor(0);
         twitchConnector = new TwitchConnector();
         prefs = Preferences.userNodeForPackage(MainFrame.class);
@@ -48,7 +46,7 @@ public class MainController {
     }
 
     public void reload() {
-        Logger.getLogger().setLogArea(log);
+        Logger.getLogger().reload();
         twitchConnector.reloadClient();
     }
 

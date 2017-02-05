@@ -14,8 +14,8 @@ import java.util.Map;
  */
 public class BTTVHelper {
     private static BTTVHelper bttvHelper = new BTTVHelper();
-    private final String EMOTE_API_URL = "https://api.betterttv.net/2/emotes";
-    private final String EMOTE_URL = "http://cdn.betterttv.net/emote/";
+    private static final String EMOTE_API_URL = "https://api.betterttv.net/2/emotes";
+    private static final String EMOTE_URL = "http://cdn.betterttv.net/emote/";
     private Map<String, String> emotes;
 
     private BTTVHelper() {

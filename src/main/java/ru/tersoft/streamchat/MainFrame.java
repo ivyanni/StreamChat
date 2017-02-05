@@ -22,6 +22,7 @@ public class MainFrame extends JFrame {
     private final static String YLOC = "y_location";
     private final static String WIDTH = "window_width";
     private final static String HEIGHT = "window_height";
+
     private TrayIcon trayIcon;
     private MainController controller;
     private JFXPanel fxPanel;
@@ -29,6 +30,8 @@ public class MainFrame extends JFrame {
     private ComponentResizer componentResizer;
     private StackPane root;
     private Preferences prefs;
+
+    class Delta { double x, y; }
 
     private MainFrame() {
         prefs = Preferences.userNodeForPackage(getClass());
@@ -56,8 +59,6 @@ public class MainFrame extends JFrame {
             }
         });
     }
-
-    class Delta { double x, y; }
 
     private void enableResizeMode() {
         root.setStyle("-fx-background-color: darkred");
@@ -100,8 +101,6 @@ public class MainFrame extends JFrame {
         root.setStyle("-fx-background-color: transparent");
         root.getChildren().add(log);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        String cssPath = this.getClass().getResource("/darkstyle.css").toExternalForm();
-        log.getEngine().setUserStyleSheetLocation(cssPath);
         log.setFocusTraversable(false);
         controller = new MainController(log);
         return scene;

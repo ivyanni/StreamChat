@@ -14,7 +14,7 @@ import java.io.IOException;
  * Created by ivyanni on 21.01.2017.
  */
 public class TwitchConnector {
-    private final String CHANNEL_URL = "https://api.twitch.tv/kraken/channel";
+    private static final String CHANNEL_URL = "https://api.twitch.tv/kraken/channel";
     private TwitchClient twitchClient;
 
     public TwitchConnector() {

@@ -20,7 +20,7 @@ public class ChatMessage {
     private Date time;
     private String id;
     private List<String> badges;
-    Map<String,String> tokens;
+    private Map<String,String> tokens;
     private String nameColor;
     private String username;
     private String displayName;
@@ -88,8 +88,13 @@ public class ChatMessage {
                     int firstIndex = Integer.parseInt(pos.substring(0, pos.indexOf("-")));
                     int lastIndex = Integer.parseInt(pos.substring(pos.indexOf("-") + 1));
                     if(firstIndex <= message.length() && lastIndex+1 <= message.length()) {
-                        tokens.put(message.substring(firstIndex, lastIndex+1),
-                                "https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0");
+                        String emoteName = message.substring(firstIndex, lastIndex+1);
+                        emoteName = emoteName.replaceAll("[(]", "[(]");
+                        emoteName = emoteName.replaceAll("[)]", "[)]");
+                        emoteName = emoteName.replaceAll("[*]", "[*]");
+                        emoteName = emoteName.replaceAll("[:]", "[:]");
+                        emoteName = emoteName.replaceAll("[']", "[']");
+                        tokens.put(emoteName, "https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0");
                     } else break;
                 }
             }
