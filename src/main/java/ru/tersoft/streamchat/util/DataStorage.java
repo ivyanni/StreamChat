@@ -1,8 +1,5 @@
 package ru.tersoft.streamchat.util;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
 /**
  * Project streamchat.
  * Created by ivyanni on 28.01.2017.
@@ -10,8 +7,9 @@ import javafx.beans.property.StringProperty;
 public class DataStorage {
     private static DataStorage dataStorage = new DataStorage();
     public static final String CLIENT_ID = "y28js5lzpxxlsmasu42tnal77l1oox";
-    private StringProperty token = new SimpleStringProperty();
-    private StringProperty username = new SimpleStringProperty();
+    private String token = null;
+    private String username = null;
+    private String subBadge = null;
 
     private DataStorage() {
     }
@@ -21,18 +19,26 @@ public class DataStorage {
     }
 
     public String getToken() {
-        return token.getValue();
+        return token;
     }
 
     public void setToken(String token) {
-        this.token.setValue(token);
+        this.token = token;
     }
 
     public String getUsername() {
-        return username.getValue();
+        return username;
     }
 
     public void setUsername(String username) {
-        this.username.setValue(username);
+        this.username = username;
+    }
+
+    public String getSubBadge() {
+        return subBadge;
+    }
+
+    public void setSubBadge(String subBadge) {
+        this.subBadge = subBadge;
     }
 }

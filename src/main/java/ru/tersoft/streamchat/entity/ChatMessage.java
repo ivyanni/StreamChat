@@ -5,6 +5,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 import ru.tersoft.streamchat.util.BTTVHelper;
+import ru.tersoft.streamchat.util.BadgeLoader;
 import ru.tersoft.streamchat.util.DataStorage;
 
 import java.text.SimpleDateFormat;
@@ -25,27 +26,37 @@ public class ChatMessage {
     private String username;
     private String displayName;
     private String message;
+    private Boolean action = false;
 
     public ChatMessage(Date time, String line) {
         DataStorage dataStorage = DataStorage.getDataStorage();
         // Set time
         this.time = time;
-        // Set empty displayName
-        displayName = "";
         // Set name color
-        int startIndex = line.indexOf("color=") + 6;
-        nameColor = line.substring(startIndex, line.indexOf(";", startIndex));
+        int startIndex;
+        if(line.indexOf("color=") > 0) {
+            startIndex = line.indexOf("color=") + 6;
+            nameColor = line.substring(startIndex, line.indexOf(";", startIndex));
+        } else nameColor = null;
         // Set id
         startIndex = line.indexOf("id=") + 3;
         id = line.substring(startIndex, line.indexOf(";", startIndex));
         // Set badges
         handleBadges(line);
         // Set display name
-        startIndex = line.indexOf("display-name=") + 13;
-        displayName += " " + line.substring(startIndex, line.indexOf(";", startIndex));
+        if(line.indexOf("display-name=") > 0) {
+            startIndex = line.indexOf("display-name=") + 13;
+            displayName = line.substring(startIndex, line.indexOf(";", startIndex));
+        } else displayName = null;
         // Set message
-        startIndex = line.indexOf("PRIVMSG #" + dataStorage.getUsername() + " :") + 11 + dataStorage.getUsername().length();
-        message = line.substring(startIndex);
+        if(line.contains("\001ACTION")) {
+            action = true;
+            startIndex = line.indexOf("PRIVMSG #" + dataStorage.getUsername() + " :\001ACTION ") + 19 + dataStorage.getUsername().length();
+            message = line.substring(startIndex, line.lastIndexOf("\001"));
+        } else {
+            startIndex = line.indexOf("PRIVMSG #" + dataStorage.getUsername() + " :") + 11 + dataStorage.getUsername().length();
+            message = line.substring(startIndex);
+        }
         // Set username
         Pattern pattern = Pattern.compile(".*@(.*?).tmi.twitch.tv");
         Matcher matcher = pattern.matcher(line);
@@ -64,8 +75,16 @@ public class ChatMessage {
             String[] allBadges = badgesLine.split(",");
             for (String badge : allBadges) {
                 String badgeName = badge.substring(0, badge.indexOf("/"));
-                if(badgeName.equals("moderator")) badgeName = "mod";
-                badges.add("https://static-cdn.jtvnw.net/chat-badges/" + badgeName + ".png");
+                String badgeVersion = badge.substring(badge.indexOf("/") + 1);
+                if(badgeName.equals("subscriber")) {
+                    String subBadgeUrl = DataStorage.getDataStorage().getSubBadge();
+                    if(subBadgeUrl != null) {
+                        badges.add(subBadgeUrl);
+                    }
+                } else {
+                    String badgeUrl = BadgeLoader.getLoader().getBadges().get(badgeName+"/"+badgeVersion);
+                    badges.add(badgeUrl);
+                }
             }
         }
     }
@@ -94,6 +113,7 @@ public class ChatMessage {
                         emoteName = emoteName.replaceAll("[*]", "[*]");
                         emoteName = emoteName.replaceAll("[:]", "[:]");
                         emoteName = emoteName.replaceAll("[']", "[']");
+                        emoteName = emoteName.replaceAll("[?]", "[?]");
                         tokens.put(emoteName, "https://static-cdn.jtvnw.net/emoticons/v1/" + emoteId + "/1.0");
                     } else break;
                 }
@@ -108,15 +128,35 @@ public class ChatMessage {
     public Element getElement(Document document) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm", Locale.forLanguageTag("ru-RU"));
 
-        Element nameNode = document.createElement("font");
-        nameNode.setAttribute("color", nameColor);
+        Element fontNode = document.createElement("font");
+        Element strongNode = document.createElement("strong");
+        if(nameColor != null) {
+            fontNode.setAttribute("color", nameColor);
+        }
         for(String badge : badges) {
+            Element span = document.createElement("span");
             Element img = document.createElement("img");
             img.setAttribute("src", badge);
-            nameNode.appendChild(img);
+            img.setAttribute("class", "badge");
+            span.appendChild(img);
+            span.appendChild(document.createTextNode(" "));
+            strongNode.appendChild(span);
         }
-        Text name = document.createTextNode(displayName + ": ");
-        nameNode.appendChild(name);
+        Text name;
+        if(!action) {
+            if (displayName == null) {
+                name = document.createTextNode(username + ": ");
+            } else {
+                name = document.createTextNode(displayName + ": ");
+            }
+        } else {
+            if (displayName == null) {
+                name = document.createTextNode(username + " ");
+            } else {
+                name = document.createTextNode(displayName + " ");
+            }
+        }
+        strongNode.appendChild(name);
 
         Element messageNode = document.createElement("span");
 
@@ -142,6 +182,7 @@ public class ChatMessage {
                 str = str.replaceAll("[*]", "[*]");
                 str = str.replaceAll("[:]", "[:]");
                 str = str.replaceAll("[']", "[']");
+                str = str.replaceAll("[?]", "[?]");
                 Element img = document.createElement("img");
                 img.setAttribute("src", emotes.get(str));
                 img.setAttribute("class", "emote");
@@ -157,12 +198,15 @@ public class ChatMessage {
         Element timeNode = document.createElement("font");
         timeNode.setAttribute("color", "grey");
         timeNode.setAttribute("size", "1");
-        timeNode.setTextContent("[" + simpleDateFormat.format(time) + "] ");
-        Element strongNode = document.createElement("strong");
-        strongNode.appendChild(nameNode);
+        timeNode.setTextContent("[" + simpleDateFormat.format(time) + "]  ");
+        fontNode.appendChild(strongNode);
         div.appendChild(timeNode);
-        div.appendChild(strongNode);
-        div.appendChild(messageNode);
+        div.appendChild(fontNode);
+        if(!action) {
+            div.appendChild(messageNode);
+        } else {
+            fontNode.appendChild(messageNode);
+        }
         div.setAttribute("id", id);
         return div;
     }

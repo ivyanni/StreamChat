@@ -8,6 +8,7 @@ import javafx.stage.StageStyle;
 import ru.tersoft.streamchat.MainFrame;
 import ru.tersoft.streamchat.TwitchConnector;
 import ru.tersoft.streamchat.util.BTTVHelper;
+import ru.tersoft.streamchat.util.BadgeLoader;
 import ru.tersoft.streamchat.util.DataStorage;
 import ru.tersoft.streamchat.util.Logger;
 
@@ -35,6 +36,7 @@ public class MainController {
         Logger.getLogger().start(web, bundle);
         this.bundle = bundle;
         BTTVHelper.getHelper().load();
+        BadgeLoader.getLoader().load();
         final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(web.getEngine());
         webPage.setBackgroundColor(0);
         twitchConnector = new TwitchConnector();
@@ -65,6 +67,7 @@ public class MainController {
                 }
             } else {
                 DataStorage.getDataStorage().setUsername(username);
+                twitchConnector.receiveSubBadge();
                 twitchConnector.startClient();
             }
         } catch(IOException e) {

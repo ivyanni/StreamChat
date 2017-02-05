@@ -29,7 +29,7 @@ public class MainFrame extends JFrame {
     private TrayIcon trayIcon;
     private MainController controller;
     private JFXPanel fxPanel;
-    private WebView log;
+    private WebView chatView;
     private ComponentResizer componentResizer;
     private StackPane root;
     private Preferences prefs;
@@ -67,25 +67,25 @@ public class MainFrame extends JFrame {
     }
 
     private void enableResizeMode() {
-        root.setStyle("-fx-background-color: darkred");
-        getRootPane().setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.RED));
+        root.setStyle("-fx-background-color: lightgrey");
+        getRootPane().setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
         componentResizer = new ComponentResizer();
         componentResizer.setMinimumSize(new Dimension(200, 250));
         componentResizer.registerComponent(this);
         final Delta dragDelta = new Delta();
-        log.setOnMousePressed(mouseEvent -> {
+        chatView.setOnMousePressed(mouseEvent -> {
             dragDelta.x = this.getLocation().getX() - mouseEvent.getScreenX();
             dragDelta.y = this.getLocation().getY() - mouseEvent.getScreenY();
         });
-        log.setOnMouseDragged(mouseEvent -> this.setLocation((int)(mouseEvent.getScreenX() + dragDelta.x), (int)(mouseEvent.getScreenY() + dragDelta.y)));
+        chatView.setOnMouseDragged(mouseEvent -> this.setLocation((int)(mouseEvent.getScreenX() + dragDelta.x), (int)(mouseEvent.getScreenY() + dragDelta.y)));
     }
 
     private void disableResizeMode() {
         root.setStyle("-fx-background-color: transparent");
         getRootPane().setBorder(null);
         componentResizer.deregisterComponent(this);
-        log.setOnMousePressed(null);
-        log.setOnMouseDragged(null);
+        chatView.setOnMousePressed(null);
+        chatView.setOnMouseDragged(null);
         prefs.putDouble(XLOC, getLocation().getX());
         prefs.putDouble(YLOC, getLocation().getY());
         prefs.putInt(WIDTH, getWidth());
@@ -94,22 +94,27 @@ public class MainFrame extends JFrame {
 
     private Scene createFxScene() throws Exception {
         root = new StackPane();
-        log = new WebView();
-        log.setVisible(false);
-        log.setStyle("-fx-background-color: transparent");
-        log.visibleProperty().addListener((observable, oldValue, newValue) -> {
+        createWebView();
+        Scene scene = new Scene(root);
+        root.setStyle("-fx-background-color: transparent");
+        root.getChildren().add(chatView);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        controller = new MainController(chatView, bundle);
+        return scene;
+    }
+
+    private void createWebView() {
+        chatView = new WebView();
+        chatView.setVisible(false);
+        chatView.setStyle("-fx-background-color: transparent");
+        chatView.visibleProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue) {
                 MainFrame.this.setVisible(true);
                 createTrayIcon();
             }
         });
-        Scene scene = new Scene(root);
-        root.setStyle("-fx-background-color: transparent");
-        root.getChildren().add(log);
-        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        log.setFocusTraversable(false);
-        controller = new MainController(log, bundle);
-        return scene;
+        chatView.setFocusTraversable(false);
+        chatView.getEngine().getHistory().setMaxSize(0);
     }
 
     private final ActionListener closeListener = e -> Platform.runLater(new Runnable() {
@@ -143,7 +148,7 @@ public class MainFrame extends JFrame {
             }
             PopupMenu popup = new PopupMenu();
             MenuItem resizeItem = new MenuItem(bundle.getString("resize"));
-            log.setOnMouseClicked(mouseEvent -> {
+            chatView.setOnMouseClicked(mouseEvent -> {
                 if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                     if(mouseEvent.getClickCount() == 2) {
                         chooseResizeAction(resizeItem);
@@ -153,7 +158,11 @@ public class MainFrame extends JFrame {
             resizeItem.addActionListener(e -> chooseResizeAction(resizeItem));
             popup.add(resizeItem);
             MenuItem reloadItem = new MenuItem(bundle.getString("reload"));
-            reloadItem.addActionListener(e -> controller.reload());
+            reloadItem.addActionListener(e -> Platform.runLater(() -> {
+                createWebView();
+                root.getChildren().add(chatView);
+                controller.reload();
+            }));
             popup.add(reloadItem);
             MenuItem closeItem = new MenuItem(bundle.getString("exit"));
             closeItem.addActionListener(closeListener);

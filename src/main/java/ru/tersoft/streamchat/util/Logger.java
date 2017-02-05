@@ -81,7 +81,7 @@ public class Logger {
             if(chatView != null) {
                 Element editedLine = handleLine(content);
                 if (editedLine != null) {
-                    if (messages.size() > 20) {
+                    if (messages.size() > 8) {
                         Node first = chatView.getEngine().getDocument().getElementById("container").getFirstChild();
                         chatView.getEngine().getDocument().getElementById("container").removeChild(first);
                         messages.remove(0);
@@ -137,9 +137,11 @@ public class Logger {
         DataStorage dataStorage = DataStorage.getDataStorage();
         if(line.startsWith(">")) {
             if(line.contains("PRIVMSG")) {
-                ChatMessage message = new ChatMessage(Calendar.getInstance().getTime(), line);
-                messages.add(message);
-                return message.getElement(chatView.getEngine().getDocument());
+                if(!line.contains("twitchnotify.tmi.twitch.tv")) {
+                    ChatMessage message = new ChatMessage(Calendar.getInstance().getTime(), line);
+                    messages.add(message);
+                    return message.getElement(chatView.getEngine().getDocument());
+                }
             }
             else if(line.contains("CLEARCHAT")) {
                 String username = line.substring(line.indexOf("CLEARCHAT #" + dataStorage.getUsername() + " :")
@@ -173,6 +175,7 @@ public class Logger {
 
     private void createDocument() {
         chatView.getEngine().setJavaScriptEnabled(true);
+        chatView.getEngine().loadContent(null);
         chatView.getEngine().loadContent("");
         chatView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue == Worker.State.SUCCEEDED) {

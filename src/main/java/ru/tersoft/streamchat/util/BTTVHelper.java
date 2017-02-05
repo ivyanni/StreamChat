@@ -53,6 +53,7 @@ public class BTTVHelper {
                             code = code.replaceAll("[*]", "[*]");
                             code = code.replaceAll("[:]", "[:]");
                             code = code.replaceAll("[']", "[']");
+                            code = code.replaceAll("[?]", "[?]");
                             emotes.put(code,
                                     EMOTE_URL + emote.getString("id") + "/1x");
                         }
