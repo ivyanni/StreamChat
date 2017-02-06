@@ -1,6 +1,5 @@
 package ru.tersoft.streamchat;
 
-import com.sun.javafx.application.PlatformImpl;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -43,6 +42,7 @@ public class MainFrame extends JFrame {
         bundle = ResourceBundle.getBundle("locale/strings", new Locale(loc));
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
+        setTitle("Stream Chat");
         setUndecorated(true);
         setFocusable(false);
         setFocusableWindowState(false);
@@ -179,7 +179,6 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        PlatformImpl.setTaskbarApplication(false);
         new MainFrame();
     }
 }
