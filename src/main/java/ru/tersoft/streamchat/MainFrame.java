@@ -39,7 +39,8 @@ public class MainFrame extends JFrame {
     private MainFrame() {
         prefs = Preferences.userNodeForPackage(getClass());
         String loc = prefs.get(LOCALE, Locale.getDefault().getLanguage());
-        bundle = ResourceBundle.getBundle("locale/strings", new Locale(loc));
+        Locale.setDefault(new Locale(loc));
+        bundle = ResourceBundle.getBundle("locale/strings");
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
         setTitle("Stream Chat");
