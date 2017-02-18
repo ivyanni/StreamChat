@@ -2,18 +2,23 @@ package ru.tersoft.streamchat;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import ru.tersoft.streamchat.controller.MainController;
 import ru.tersoft.streamchat.util.ComponentResizer;
+import ru.tersoft.streamchat.util.DataStorage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -26,12 +31,13 @@ public class MainFrame extends JFrame {
     private final static String HEIGHT = "window_height";
     private final static String LOCALE = "locale";
 
-    private TrayIcon trayIcon;
-    private MainController controller;
+    private static MainController controller;
+    private static JFrame frame;
+    private static TrayIcon trayIcon;
+    private StackPane root;
     private JFXPanel fxPanel;
     private WebView chatView;
     private ComponentResizer componentResizer;
-    private StackPane root;
     private Preferences prefs;
     private ResourceBundle bundle;
 
@@ -42,6 +48,7 @@ public class MainFrame extends JFrame {
         String loc = prefs.get(LOCALE, Locale.getDefault().getLanguage());
         Locale.setDefault(new Locale(loc));
         bundle = ResourceBundle.getBundle("locale/strings");
+        DataStorage.getDataStorage().setBundle(bundle);
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
         setTitle("Stream Chat");
@@ -49,7 +56,7 @@ public class MainFrame extends JFrame {
         setFocusable(false);
         setFocusableWindowState(false);
         setBackground(new Color(0, 0, 0, 0));
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         try {
             setIconImage(ImageIO.read(getClass().getResourceAsStream("/icon.png")));
         } catch (IOException e) {
@@ -78,7 +85,6 @@ public class MainFrame extends JFrame {
         chatView.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             dragDelta.x = this.getLocation().getX() - event.getScreenX();
             dragDelta.y = this.getLocation().getY() - event.getScreenY();
-            System.out.println(dragDelta.x + " " + dragDelta.y);
         });
         chatView.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
             this.setLocation((int)(event.getScreenX() + dragDelta.x), (int)(event.getScreenY() + dragDelta.y));
@@ -153,6 +159,25 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void openSettingsWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/layouts/settings.fxml"));
+            GridPane root = loader.load();
+            Stage settingsStage = new Stage();
+            settingsStage.setScene(new Scene(root));
+            settingsStage.setTitle(bundle.getString("settings"));
+            settingsStage.setResizable(false);
+            settingsStage.setWidth(300);
+            settingsStage.setHeight(250);
+            settingsStage.getIcons().add(new javafx.scene.image.Image
+                    (getClass().getResourceAsStream("/icon.png")));
+            settingsStage.show();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void createTrayIcon() {
         if (SystemTray.isSupported()) {
             SystemTray tray = SystemTray.getSystemTray();
@@ -167,15 +192,16 @@ public class MainFrame extends JFrame {
             resizeItem.addActionListener(e -> chooseResizeAction(resizeItem));
             popup.add(resizeItem);
             MenuItem reloadItem = new MenuItem(bundle.getString("reload"));
-            reloadItem.addActionListener(e -> {
-                Platform.runLater(() -> {
-                    createWebView();
-                    setDoubleClickListener();
-                    root.getChildren().add(chatView);
-                    controller.reload();
-                });
-            });
+            reloadItem.addActionListener(e -> Platform.runLater(() -> {
+                createWebView();
+                setDoubleClickListener();
+                root.getChildren().add(chatView);
+                controller.reload();
+            }));
             popup.add(reloadItem);
+            MenuItem settingsItem = new MenuItem(bundle.getString("settings"));
+            settingsItem.addActionListener(e -> Platform.runLater(this::openSettingsWindow));
+            popup.add(settingsItem);
             MenuItem closeItem = new MenuItem(bundle.getString("exit"));
             closeItem.addActionListener(closeListener);
             popup.add(closeItem);
@@ -190,7 +216,15 @@ public class MainFrame extends JFrame {
         }
     }
 
+    public static void restart() {
+        SystemTray.getSystemTray().remove(trayIcon);
+        controller.stopAllClients();
+        controller = null;
+        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        frame = new MainFrame();
+    }
+
     public static void main(String[] args) {
-        new MainFrame();
+        frame = new MainFrame();
     }
 }

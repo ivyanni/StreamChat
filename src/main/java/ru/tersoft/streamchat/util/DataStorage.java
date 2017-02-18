@@ -1,5 +1,7 @@
 package ru.tersoft.streamchat.util;
 
+import java.util.ResourceBundle;
+
 /**
  * Project streamchat.
  * Created by ivyanni on 28.01.2017.
@@ -10,6 +12,8 @@ public class DataStorage {
     private String token = null;
     private String username = null;
     private String subBadge = null;
+    private Boolean bttvEnabled = true;
+    private ResourceBundle bundle;
 
     private DataStorage() {
     }
@@ -40,5 +44,21 @@ public class DataStorage {
 
     public void setSubBadge(String subBadge) {
         this.subBadge = subBadge;
+    }
+
+    public Boolean getBttvEnabled() {
+        return bttvEnabled;
+    }
+
+    public void setBttvEnabled(Boolean bttvEnabled) {
+        this.bttvEnabled = bttvEnabled;
+    }
+
+    public ResourceBundle getBundle() {
+        return bundle;
+    }
+
+    public void setBundle(ResourceBundle bundle) {
+        this.bundle = bundle;
     }
 }

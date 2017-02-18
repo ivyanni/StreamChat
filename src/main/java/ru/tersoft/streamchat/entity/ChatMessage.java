@@ -163,7 +163,9 @@ public class ChatMessage {
         Map<String, String> emotes = new HashMap<>();
         emotes.putAll(tokens);
         // Set BTTV emotes
-        emotes.putAll(BTTVHelper.getHelper().getEmotes());
+        if(DataStorage.getDataStorage().getBttvEnabled()) {
+            emotes.putAll(BTTVHelper.getHelper().getEmotes());
+        }
         String patternString = "^(" + StringUtils.join(emotes.keySet(), "|") + ")$";
         Pattern pattern = Pattern.compile(patternString);
         String[] words = message.split(" ");

@@ -142,13 +142,11 @@ public class Logger {
                     messages.add(message);
                     return message.getElement(chatView.getEngine().getDocument());
                 }
-            }
-            else if(line.contains("CLEARCHAT")) {
+            } else if(line.contains("CLEARCHAT")) {
                 String username = line.substring(line.indexOf("CLEARCHAT #" + dataStorage.getUsername() + " :")
                         + 13 + dataStorage.getUsername().length());
                 deleteMessages(username);
-            }
-            else if(line.contains("> :tmi.twitch.tv CAP * ACK :twitch.tv/tags")) {
+            } else if(line.contains("> :tmi.twitch.tv CAP * ACK :twitch.tv/tags")) {
                 Element text = chatView.getEngine().getDocument().createElement("span");
                 text.appendChild(chatView.getEngine().getDocument().createTextNode(bundle.getString("finish_connect") + " "));
                 Element channelName = chatView.getEngine().getDocument().createElement("strong");

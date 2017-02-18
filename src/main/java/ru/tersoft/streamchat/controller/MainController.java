@@ -25,7 +25,7 @@ public class MainController {
             "?response_type=token" +
             "&client_id=" + DataStorage.CLIENT_ID +
             "&redirect_uri=http://localhost/twitch_oauth" +
-            "&scope=channel_read";
+            "&scope=chat_login+channel_read";
     private static final String PREF_TOKEN = "access_token";
     private static final String PREF_NAME = "username";
     private TwitchConnector twitchConnector;
@@ -35,12 +35,14 @@ public class MainController {
     public MainController(WebView web, ResourceBundle bundle) {
         Logger.getLogger().start(web, bundle);
         this.bundle = bundle;
-        BTTVHelper.getHelper().load();
+        prefs = Preferences.userNodeForPackage(MainFrame.class);
+        if(prefs.getBoolean("bttv", true)) {
+            BTTVHelper.getHelper().load();
+        } else DataStorage.getDataStorage().setBttvEnabled(false);
         BadgeLoader.getLoader().load();
         final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(web.getEngine());
         webPage.setBackgroundColor(0);
         twitchConnector = new TwitchConnector();
-        prefs = Preferences.userNodeForPackage(MainFrame.class);
         String token = prefs.get(PREF_TOKEN, null);
         String username = prefs.get(PREF_NAME, null);
         if(token != null) {
