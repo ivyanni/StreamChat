@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import ru.tersoft.streamchat.controller.MainController;
@@ -74,11 +75,14 @@ public class MainFrame extends JFrame {
         componentResizer.setMinimumSize(new Dimension(200, 250));
         componentResizer.registerComponent(this);
         final Delta dragDelta = new Delta();
-        chatView.setOnMousePressed(mouseEvent -> {
-            dragDelta.x = this.getLocation().getX() - mouseEvent.getScreenX();
-            dragDelta.y = this.getLocation().getY() - mouseEvent.getScreenY();
+        chatView.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            dragDelta.x = this.getLocation().getX() - event.getScreenX();
+            dragDelta.y = this.getLocation().getY() - event.getScreenY();
+            System.out.println(dragDelta.x + " " + dragDelta.y);
         });
-        chatView.setOnMouseDragged(mouseEvent -> this.setLocation((int)(mouseEvent.getScreenX() + dragDelta.x), (int)(mouseEvent.getScreenY() + dragDelta.y)));
+        chatView.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+            this.setLocation((int)(event.getScreenX() + dragDelta.x), (int)(event.getScreenY() + dragDelta.y));
+        });
     }
 
     private void disableResizeMode() {
@@ -93,9 +97,26 @@ public class MainFrame extends JFrame {
         prefs.putInt(HEIGHT, getHeight());
     }
 
+    private void setDoubleClickListener() {
+        chatView.setOnMouseClicked(mouseEvent -> {
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if(mouseEvent.getClickCount() == 2) {
+                    chooseResizeAction(trayIcon.getPopupMenu().getItem(0));
+                }
+            }
+        });
+    }
+
     private Scene createFxScene() throws Exception {
         root = new StackPane();
         createWebView();
+        chatView.visibleProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue) {
+                MainFrame.this.setVisible(true);
+                createTrayIcon();
+                setDoubleClickListener();
+            }
+        });
         Scene scene = new Scene(root);
         root.setStyle("-fx-background-color: transparent");
         root.getChildren().add(chatView);
@@ -108,12 +129,6 @@ public class MainFrame extends JFrame {
         chatView = new WebView();
         chatView.setVisible(false);
         chatView.setStyle("-fx-background-color: transparent");
-        chatView.visibleProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue) {
-                MainFrame.this.setVisible(true);
-                createTrayIcon();
-            }
-        });
         chatView.setFocusTraversable(false);
         chatView.getEngine().getHistory().setMaxSize(0);
     }
@@ -149,21 +164,17 @@ public class MainFrame extends JFrame {
             }
             PopupMenu popup = new PopupMenu();
             MenuItem resizeItem = new MenuItem(bundle.getString("resize"));
-            chatView.setOnMouseClicked(mouseEvent -> {
-                if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
-                    if(mouseEvent.getClickCount() == 2) {
-                        chooseResizeAction(resizeItem);
-                    }
-                }
-            });
             resizeItem.addActionListener(e -> chooseResizeAction(resizeItem));
             popup.add(resizeItem);
             MenuItem reloadItem = new MenuItem(bundle.getString("reload"));
-            reloadItem.addActionListener(e -> Platform.runLater(() -> {
-                createWebView();
-                root.getChildren().add(chatView);
-                controller.reload();
-            }));
+            reloadItem.addActionListener(e -> {
+                Platform.runLater(() -> {
+                    createWebView();
+                    setDoubleClickListener();
+                    root.getChildren().add(chatView);
+                    controller.reload();
+                });
+            });
             popup.add(reloadItem);
             MenuItem closeItem = new MenuItem(bundle.getString("exit"));
             closeItem.addActionListener(closeListener);

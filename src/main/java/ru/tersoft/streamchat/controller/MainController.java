@@ -25,7 +25,7 @@ public class MainController {
             "?response_type=token" +
             "&client_id=" + DataStorage.CLIENT_ID +
             "&redirect_uri=http://localhost/twitch_oauth" +
-            "&scope=chat_login+channel_read+user_read";
+            "&scope=channel_read";
     private static final String PREF_TOKEN = "access_token";
     private static final String PREF_NAME = "username";
     private TwitchConnector twitchConnector;
