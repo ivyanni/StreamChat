@@ -2,6 +2,7 @@ package ru.tersoft.streamchat;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
@@ -47,7 +48,7 @@ public class MainFrame extends JFrame {
         prefs = Preferences.userNodeForPackage(getClass());
         String loc = prefs.get(LOCALE, Locale.getDefault().getLanguage());
         Locale.setDefault(new Locale(loc));
-        bundle = ResourceBundle.getBundle("locale/strings");
+        bundle = ResourceBundle.getBundle("ru/tersoft/streamchat/locale/strings");
         DataStorage.getDataStorage().setBundle(bundle);
         setAlwaysOnTop(true);
         setType(Type.UTILITY);
@@ -75,28 +76,22 @@ public class MainFrame extends JFrame {
         });
     }
 
-    private void enableResizeMode() {
+    private void enableResizeMode(EventHandler<MouseEvent> pressedEvent, EventHandler<MouseEvent> draggedEvent) {
         root.setStyle("-fx-background-color: lightgrey");
         getRootPane().setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.DARK_GRAY));
         componentResizer = new ComponentResizer();
         componentResizer.setMinimumSize(new Dimension(200, 250));
         componentResizer.registerComponent(this);
-        final Delta dragDelta = new Delta();
-        chatView.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            dragDelta.x = this.getLocation().getX() - event.getScreenX();
-            dragDelta.y = this.getLocation().getY() - event.getScreenY();
-        });
-        chatView.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
-            this.setLocation((int)(event.getScreenX() + dragDelta.x), (int)(event.getScreenY() + dragDelta.y));
-        });
+        chatView.addEventFilter(MouseEvent.MOUSE_PRESSED, pressedEvent);
+        chatView.addEventFilter(MouseEvent.MOUSE_DRAGGED, draggedEvent);
     }
 
-    private void disableResizeMode() {
+    private void disableResizeMode(EventHandler<MouseEvent> pressedEvent, EventHandler<MouseEvent> draggedEvent) {
         root.setStyle("-fx-background-color: transparent");
         getRootPane().setBorder(null);
         componentResizer.deregisterComponent(this);
-        chatView.setOnMousePressed(null);
-        chatView.setOnMouseDragged(null);
+        chatView.removeEventFilter(MouseEvent.MOUSE_PRESSED, pressedEvent);
+        chatView.removeEventFilter(MouseEvent.MOUSE_DRAGGED, draggedEvent);
         prefs.putDouble(XLOC, getLocation().getX());
         prefs.putDouble(YLOC, getLocation().getY());
         prefs.putInt(WIDTH, getWidth());
@@ -150,12 +145,22 @@ public class MainFrame extends JFrame {
     });
 
     private void chooseResizeAction(MenuItem resizeItem) {
+        final Delta dragDelta = new Delta();
+        EventHandler<MouseEvent> pressedEvent = event -> {
+            event.consume();
+            dragDelta.x = this.getLocation().getX() - event.getScreenX();
+            dragDelta.y = this.getLocation().getY() - event.getScreenY();
+        };
+        EventHandler<MouseEvent> draggedEvent = event -> {
+            event.consume();
+            this.setLocation((int)(event.getScreenX() + dragDelta.x), (int)(event.getScreenY() + dragDelta.y));
+        };
         if(resizeItem.getLabel().equals(bundle.getString("resize"))) {
             resizeItem.setLabel(bundle.getString("stop_resize"));
-            enableResizeMode();
+            enableResizeMode(pressedEvent, draggedEvent);
         } else {
             resizeItem.setLabel(bundle.getString("resize"));
-            disableResizeMode();
+            disableResizeMode(pressedEvent, draggedEvent);
         }
     }
 

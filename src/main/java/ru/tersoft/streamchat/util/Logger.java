@@ -184,7 +184,7 @@ public class Logger {
                 Element link = document.createElement("link");
                 link.setAttribute("rel", "stylesheet");
                 link.setAttribute("type", "text/css");
-                String cssPath = this.getClass().getResource("/themes/default.css").toExternalForm();
+                String cssPath = MainFrame.class.getResource("themes/default.css").toExternalForm();
                 link.setAttribute("href", cssPath);
                 head.appendChild(link);
 
@@ -193,7 +193,7 @@ public class Logger {
                     link = document.createElement("link");
                     link.setAttribute("rel", "stylesheet");
                     link.setAttribute("type", "text/css");
-                    cssPath = this.getClass().getResource("/themes/" + theme + ".css").toExternalForm();
+                    cssPath = MainFrame.class.getResource("themes/" + theme + ".css").toExternalForm();
                     link.setAttribute("href", cssPath);
                     head.appendChild(link);
                 }

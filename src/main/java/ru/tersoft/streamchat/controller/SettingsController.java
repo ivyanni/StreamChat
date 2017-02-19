@@ -11,15 +11,14 @@ import javafx.stage.Stage;
 import ru.tersoft.streamchat.MainFrame;
 import ru.tersoft.streamchat.util.DataStorage;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.net.URLDecoder;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.prefs.Preferences;
 
 /**
@@ -56,6 +55,36 @@ public class SettingsController implements Initializable {
     public SettingsController() {
     }
 
+    static <T extends Collection<? super String>> T getFileListing(
+            final Class<?> clazz, final String path, final T result) throws URISyntaxException,
+            IOException {
+        URL dirURL = clazz.getResource(path);
+        if (dirURL != null && dirURL.getProtocol().equals("file")) {
+            result.addAll(Arrays.asList(new File(dirURL.toURI()).list()));
+            return result;
+        }
+        if (dirURL == null) {
+            final String me = clazz.getName().replace(".", "/") + ".class";
+            dirURL = clazz.getResource(me);
+        }
+        if (dirURL.getProtocol().equals("jar")) {
+            final String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!"));
+            final JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+            final Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                final String name = entries.nextElement().getName();
+                final int pathIndex = name.lastIndexOf(path);
+                if (pathIndex > 0) {
+                    final String nameWithPath = name.substring(name.lastIndexOf(path));
+                    result.add(nameWithPath.substring(path.length()));
+                }
+            }
+            jar.close();
+            return result;
+        }
+        throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         bundle = DataStorage.getDataStorage().getBundle();
@@ -65,32 +94,30 @@ public class SettingsController implements Initializable {
         enableBttv.setSelected(prefs.getBoolean("bttv", true));
         List<String> themeList = new ArrayList<>();
         try {
-            InputStream in = getClass().getResourceAsStream("/themes/");
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String resource;
-            while((resource = br.readLine()) != null) {
-                themeList.add(resource.substring(0, resource.indexOf(".")));
+            for (final String resource : getFileListing(MainFrame.class,"themes/", new HashSet<>())) {
+                if(!resource.isEmpty()) {
+                    themeList.add(resource.substring(0, resource.indexOf(".")));
+                }
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
         localeStringList = new ArrayList<>();
         localeList = new ArrayList<>();
         try {
-            InputStream in = getClass().getResourceAsStream("/locale/");
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String resource;
-            while((resource = br.readLine()) != null) {
-                if(!resource.contains("_")) {
-                    localeStringList.add(new Locale("en").getDisplayLanguage().toLowerCase());
-                    localeList.add(new Locale("en"));
-                } else {
-                    String localeName = resource.substring("strings_".length(), resource.indexOf("."));
-                    localeStringList.add(new Locale(localeName).getDisplayLanguage().toLowerCase());
-                    localeList.add(new Locale(localeName));
+            for (final String resource : getFileListing(MainFrame.class,"locale/", new HashSet<>())) {
+                if(!resource.isEmpty()) {
+                    if(!resource.contains("_")) {
+                        localeStringList.add(new Locale("en").getDisplayLanguage().toLowerCase());
+                        localeList.add(new Locale("en"));
+                    } else {
+                        String localeName = resource.substring("strings_".length(), resource.indexOf("."));
+                        localeStringList.add(new Locale(localeName).getDisplayLanguage().toLowerCase());
+                        localeList.add(new Locale(localeName));
+                    }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
         themes.setItems(FXCollections.observableArrayList(themeList));
