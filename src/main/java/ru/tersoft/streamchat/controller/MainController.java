@@ -36,10 +36,10 @@ public class MainController {
         Logger.getLogger().start(web, bundle);
         this.bundle = bundle;
         prefs = Preferences.userNodeForPackage(MainFrame.class);
+        BadgeLoader.getLoader().load();
         if(prefs.getBoolean("bttv", true)) {
             BTTVHelper.getHelper().load();
         } else DataStorage.getDataStorage().setBttvEnabled(false);
-        BadgeLoader.getLoader().load();
         final com.sun.webkit.WebPage webPage = com.sun.javafx.webkit.Accessor.getPageFor(web.getEngine());
         webPage.setBackgroundColor(0);
         twitchConnector = new TwitchConnector();

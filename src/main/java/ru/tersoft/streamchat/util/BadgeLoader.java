@@ -1,5 +1,9 @@
 package ru.tersoft.streamchat.util;
 
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.stage.StageStyle;
 import okhttp3.*;
 import org.json.JSONObject;
 
@@ -34,7 +38,19 @@ public class BadgeLoader {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Connection problem");
+                    alert.setHeaderText(null);
+                    alert.initStyle(StageStyle.UTILITY);
+                    alert.setContentText("Couldn't connect to Twitch API. Check your Internet connection.");
+                    alert.showAndWait().ifPresent(response -> {
+                        if (response == ButtonType.OK) {
+                            Platform.exit();
+                            System.exit(0);
+                        }
+                    });
+                });
             }
 
             @Override
