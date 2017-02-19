@@ -96,7 +96,7 @@ public class SettingsController implements Initializable {
         themes.setItems(FXCollections.observableArrayList(themeList));
         locales.setItems(FXCollections.observableArrayList(localeStringList));
         themes.setValue(prefs.get("theme", "default"));
-        locales.setValue(new Locale(prefs.get("locale", "en")).getDisplayLanguage());
+        locales.setValue(new Locale(prefs.get("locale", "en")).getDisplayLanguage().toLowerCase());
         username.setText(prefs.get("username", null));
         cancelButton.onActionProperty().setValue(event -> {
             Stage stage = (Stage) cancelButton.getScene().getWindow();

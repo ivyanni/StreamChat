@@ -6,7 +6,7 @@ task makeJar(type: Jar) {
         attributes 'Main-Class': 'ru.tersoft.streamchat.MainFrame'
     }
     baseName = 'streamchat'
-    version = '0.0.1-SNAPSHOT'
+    version = '0.2-alpha'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
